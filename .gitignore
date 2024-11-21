@@ -1,0 +1,12 @@
+
+# Build results
+cmake-build-debug/
+cmake-build-release/
+.idea/
+Debug/
+Release/
+obj/
+bin/
+*build/
+*.nupkg 
+*.engine
