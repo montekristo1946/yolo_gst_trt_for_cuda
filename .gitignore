@@ -10,3 +10,5 @@ bin/
 *build/
 *.nupkg 
 *.engine
+*.onnx
+*.onnx.hash

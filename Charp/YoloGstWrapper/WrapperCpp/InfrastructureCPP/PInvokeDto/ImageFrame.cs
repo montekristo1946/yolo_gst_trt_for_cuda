@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace WrapperCpp.InfrastructureCPP.PInvokeDto;
 
-[StructLayout(LayoutKind.Explicit, Pack = 0)]
+[StructLayout(LayoutKind.Explicit, Pack = 1)]
 internal struct ImageFrame
 {
     [FieldOffset(0)]

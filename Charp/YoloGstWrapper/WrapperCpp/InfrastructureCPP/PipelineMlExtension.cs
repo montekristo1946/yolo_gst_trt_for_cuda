@@ -267,4 +267,30 @@ public class PipelineMlExtension : IDisposable,IPipelineMlExtension
         }
        
     }
+    
+    private static bool CreateWeight(ConverterConfig config)
+    {
+        if (!File.Exists(config.AssetsPath))
+            return false;
+
+        var pathFolderDestination = Path.GetDirectoryName(config.EnginePath);
+
+        if (!Directory.Exists(pathFolderDestination))
+            return false;
+
+        if (File.Exists(config.EnginePath))
+        {
+            File.Delete(config.EnginePath);
+        }
+
+        var assetsPathChar = new StringBuilder(config.AssetsPath);
+        var exportSaveChar = new StringBuilder(config.EnginePath);
+        var inputLayer     = config.InputLayer;
+        var inputLayerCpp  = new LayerSize(inputLayer.BatchSize, inputLayer.Channel, inputLayer.Width, inputLayer.Height);
+        var idGpu          = config.IdGpu;
+        var setHalfModel   = true;
+        var res            = PipelinePInvoke.ConverterNetworkWeight(assetsPathChar, exportSaveChar, ref inputLayerCpp, idGpu, setHalfModel);
+
+        return res;
+    }
 }

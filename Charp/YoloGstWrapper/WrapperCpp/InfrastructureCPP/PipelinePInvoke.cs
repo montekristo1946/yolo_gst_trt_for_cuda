@@ -8,7 +8,7 @@ namespace WrapperCpp.InfrastructureCPP;
 internal static class  PipelinePInvoke
 {
     // private const string _patchDll = @"./LibsCPP/libExtensionCharpTemalCamera.so";
-    private const string _patchDll = @"/mnt/Disk_C/git/yolo_gst_for_cuda/CPP/cmake-build-release/libExtensionCharpTemalCamera.so";
+    private const string _patchDll = @"/mnt/Disk_C/git/yolo_gst_trt_for_cuda/CPP/cmake-build-release/libExtensionCharpTemalCamera.so";
     
     [SuppressUnmanagedCodeSecurity]
     [DllImport(_patchDll, EntryPoint = "InitLogger", CallingConvention = CallingConvention.Cdecl)]
@@ -68,4 +68,14 @@ internal static class  PipelinePInvoke
     [SuppressUnmanagedCodeSecurity]
     [DllImport(_patchDll, EntryPoint = "GetCurrenImage", CallingConvention = CallingConvention.Cdecl)]
     internal static extern bool GetCurrenImage(IntPtr _pipeline, ref ImageFrame imageFrame);
+
+    [SuppressUnmanagedCodeSecurity]
+    [DllImport(_patchDll, EntryPoint = "ConverterNetworkWeight", CallingConvention = CallingConvention.Cdecl)]
+    internal static extern bool ConverterNetworkWeight(
+        StringBuilder pathOnnxModelChar,
+        StringBuilder exportPathModelChar,
+        ref LayerSize config,   
+        int idGpu,
+        bool setHalfModel = true
+    );
 }

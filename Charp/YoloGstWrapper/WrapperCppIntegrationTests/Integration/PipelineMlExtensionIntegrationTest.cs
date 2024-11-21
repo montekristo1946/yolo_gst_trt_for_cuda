@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using WrapperCpp;
 using WrapperCpp.Configs;
 using WrapperCpp.InfrastructureCPP;
 
@@ -24,7 +25,7 @@ public class PipelineMlExtensionIntegrationTest
 
         var config = new YoloConfigs()
         {
-            EnginePath = "/mnt/Disk_C/git/yolo_gst_for_cuda/CPP/weight/model_001.engine",
+            EnginePath = "/mnt/Disk_C/git/yolo_gst_trt_for_cuda/CPP/weight/model_001.engine",
             DeviseId = 0,
             ConfThresh = 0.1F,
             NmsThresh = 0.6F,
@@ -81,5 +82,26 @@ public class PipelineMlExtensionIntegrationTest
             Console.WriteLine($"-----{i}-----");
             FullPass();
         }
+    }
+
+    public void CreateTRTWeight()
+    {
+        var config = new ConverterConfig()
+        {
+            EnginePath = "/mnt/Disk_C/git/yolo_gst_trt_for_cuda/CPP/weight/model_001.engine",
+            AssetsPath = "/mnt/Disk_C/git/yolo_gst_trt_for_cuda/CPP/weight/model_001.onnx",
+            IdGpu = 0,
+            InputLayer = new LayerSizeConfig()
+            {
+                BatchSize = 1,
+                Channel = 3,
+                Height = 640,
+                Width = 640
+            },
+        };
+        var res = ConverterTRT.RunConverter(config, "./Logs/ConverterTRT.txt");
+        
+        if(!res)
+            throw new Exception("Create TRT weight failed");
     }
 }
