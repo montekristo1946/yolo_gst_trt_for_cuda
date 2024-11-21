@@ -137,14 +137,12 @@ target_include_directories(GstreamerLib PUBLIC  ${GST_LIBS})
 target_link_libraries(GstreamerLib PUBLIC stdc++fs ${GST_LIBS} ${OpenCV_LIBS} cudart)
 
 
-
-
 # ExtensionCharp --------------------------------------------------------------------------------------------------------------
-#add_library(ExtensionCharpTemalCamera STATIC ${SRCS} )
-add_library(ExtensionCharpTemalCamera SHARED ${SRCS} )
-target_include_directories(ExtensionCharpTemalCamera PUBLIC ${ALL_INCLUDE_LIB})
-#target_link_libraries(ExtensionCharpTemalCamera PUBLIC ${ALL_LIB} stdc++fs ${LibTrtStatic})
-target_link_libraries(ExtensionCharpTemalCamera PUBLIC ${ALL_LIB} stdc++fs  )
+#add_library(ExtensionCharp STATIC ${SRCS} )
+add_library(ExtensionCharp SHARED ${SRCS} )
+target_include_directories(ExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
+#target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs ${LibTrtStatic})
+target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs  )
 
 # TestRunProject --------------------------------------------------------------------------------------------------------------
 #add_executable(TestRunProject ${PROJECT_SOURCE_DIR}/tests/TestRunProject.cpp
@@ -160,8 +158,6 @@ add_executable(TestExtensionCharp ${PROJECT_SOURCE_DIR}/tests/TestExtensionCharp
 target_include_directories(TestExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
 target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharpTemalCamera  )
 
-
-#
 ## TestTRTEngine --------------------------------------------------------------------------------------------------------------
 add_executable(TestTRTEngine ${PROJECT_SOURCE_DIR}/tests/TestTRTEngine.cpp )
 target_link_libraries(TestTRTEngine PUBLIC TRTLayer GstreamerLib NvJpgEncoderlib )
@@ -171,14 +167,12 @@ target_link_libraries(TestTRTEngine PUBLIC TRTLayer GstreamerLib NvJpgEncoderlib
 #add_executable(TestGstDecoder  ${PROJECT_SOURCE_DIR}/tests/TestGstDecoder.cpp)
 #target_link_libraries(TestGstDecoder PUBLIC  GstreamerLib)
 
-
 # TestCuda --------------------------------------------------------------------------------------------------------------
 #add_executable(TestCuda ${PROJECT_SOURCE_DIR}/tests/TestCuda.cu)
 #target_include_directories(TestCuda PUBLIC ${ALL_INCLUDE_LIB})
 #target_link_libraries(TestCuda PUBLIC ${ALL_LIB} stdc++fs)
 #target_compile_features(TestCuda PUBLIC cxx_std_23)
 #set_target_properties( TestCuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-
 
 # TestCuda --------------------------------------------------------------------------------------------------------------
 #add_compile_options(-G)
@@ -197,7 +191,6 @@ target_link_libraries(TestTRTEngine PUBLIC TRTLayer GstreamerLib NvJpgEncoderlib
 #target_link_libraries(TestMatConverter PUBLIC ${ALL_LIB} stdc++fs)
 #target_compile_features(TestMatConverter PUBLIC cxx_std_23)
 #set_target_properties( TestMatConverter PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-
 
 # TestGPUMat --------------------------------------------------------------------------------------------------------------
 #add_executable(TestGPUMat ${PROJECT_SOURCE_DIR}/tests/TestGPUMat.cpp)
