@@ -156,7 +156,7 @@ target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs  )
 # TestExtensionCHarp --------------------------------------------------------------------------------------------------------------
 add_executable(TestExtensionCharp ${PROJECT_SOURCE_DIR}/tests/TestExtensionCharp.cpp)
 target_include_directories(TestExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
-target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharpTemalCamera  )
+target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharp  )
 
 ## TestTRTEngine --------------------------------------------------------------------------------------------------------------
 add_executable(TestTRTEngine ${PROJECT_SOURCE_DIR}/tests/TestTRTEngine.cpp )

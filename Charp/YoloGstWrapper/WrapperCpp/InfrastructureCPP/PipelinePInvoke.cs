@@ -7,8 +7,8 @@ namespace WrapperCpp.InfrastructureCPP;
 
 internal static class  PipelinePInvoke
 {
-    // private const string _patchDll = @"./LibsCPP/libExtensionCharpTemalCamera.so";
-    private const string _patchDll = @"/mnt/Disk_C/git/yolo_gst_trt_for_cuda/CPP/cmake-build-release/libExtensionCharpTemalCamera.so";
+    private const string _patchDll = @"./LibsCPP/libExtensionCharp.so";
+    // private const string _patchDll = @"/mnt/Disk_C/git/yolo_gst_trt_for_cuda/CPP/cmake-build-release/libExtensionCharp.so";
     
     [SuppressUnmanagedCodeSecurity]
     [DllImport(_patchDll, EntryPoint = "InitLogger", CallingConvention = CallingConvention.Cdecl)]
