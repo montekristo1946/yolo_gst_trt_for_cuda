@@ -45,7 +45,7 @@ public class PipelineMlExtensionIntegrationTest
         {
             Thread.Sleep(1);
             stopwatch.Restart();
-            var resDoInferencePipeline = pipelineMl.DoInferencePipeline();
+                var resDoInferencePipeline = pipelineMl.DoInferencePipeline();
 
             if (!resDoInferencePipeline.IsSuccess)
                 continue;

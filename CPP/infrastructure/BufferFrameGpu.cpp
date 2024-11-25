@@ -43,7 +43,7 @@ bool BufferFrameGpu::Enqueue(FrameGpu* frame)
     {
         while (_queueFrame.size() >= _sizeBuffer)
         {
-            // spdlog::warn("[BufferFrameGpu::Enqueue] skip Frame");
+            spdlog::warn("[BufferFrameGpu::Enqueue] skip Frame");
             auto *frameTmp = _queueFrame.front();
             _queueFrame.pop();
             std::unique_ptr<FrameGpu> frameUn(frameTmp);
