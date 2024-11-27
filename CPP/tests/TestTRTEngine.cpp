@@ -117,7 +117,7 @@ void Test_FullPassYoloGPU(string pathWeight, bool isDrawingResults)
 
     //cout << "______ End Test_FullPass OK ______" << endl;
 }
-
+/*
 void Test_matGpu_in_trt(string pathWeight)
 {
     // cuda::GpuMat test =  cuda::GpuMat(640, 640,CV_8UC1);
@@ -208,39 +208,61 @@ void Test_matGpu_in_trt(string pathWeight)
 
     cout << "______ End Test_FullPass OK ______" << endl;
 }
-
+*/
 
 string CreateConnectString()
 {
     std::ostringstream ss2;
-    ss2 << "filesrc location=/mnt/Disk_D/Document/Teplovisors/Dataset/010/11.09.2024_001.avi "
-        << "! avidemux "
-        << "! nvv4l2decoder "
-        << "! nvvideoconvert nvbuf-memory-type=3 "
-        << "! video/x-raw(memory:NVMM)"
-        << "! appsink name=mysink sync=true";
+    // ss2 << "filesrc location=/mnt/Disk_D/Document/Teplovisors/Dataset/010/11.09.2024_001.avi "
+    //     << "! avidemux "
+    //     << "! nvv4l2decoder "
+    //     << "! nvvideoconvert nvbuf-memory-type=3 "
+    //     << "! video/x-raw(memory:NVMM)"
+    //     << "! appsink name=mysink sync=true";
+
+    ss2  << "rtspsrc location=rtsp://admin:1234567Qw@10.225.1.66:554 latency=1000 "
+                   <<  "! rtph264depay "
+                 <<    "! nvv4l2decoder "
+                  <<   "! nvvideoconvert nvbuf-memory-type=3 "
+                  <<   "! video/x-raw(memory:NVMM) "
+                   <<  "! appsink name=mysink sync=true";
 
     auto mLaunchStr = ss2.str();
     return mLaunchStr;
 }
 
+TRTEngine* CreateTRTEngineLocal(TRTEngineConfig* config, CudaStream* cudaStream)
+{
+    auto trtEngine = new TRTEngine(cudaStream->GetStream());
+    bool resultInitTRT = trtEngine->InitTRTEngine(config->EngineName,
+                                                  config->DeviseId,
+                                                  config->ConfThresh,
+                                                  config->NmsThresh,
+                                                  config->MaxNumOutputBbox);
+    if (!resultInitTRT)
+        throw std::runtime_error("[CreateTRTEngine] fail InitTRTEngine");
+
+    return trtEngine;
+}
+
 void TestGstreamer()
 {
     cout << "______ Start Test_FullPass OK ______" << endl;
+    auto streem = new CudaStream();
     auto pathWeight = "../weight/model_001.engine";
-    auto cudaStream = CreateCudaStream();
     auto configTrt = CreateTRTEngineConfig(pathWeight);
-    auto trtEngine = CreateTRTEngine(configTrt);
-    auto streem = &trtEngine->_stream;
+    auto trtEngine = CreateTRTEngineLocal(configTrt,streem);
+
     auto connectString = CreateConnectString();
 
     auto settingPipeline = new SettingPipeline();
-    auto buffer = new BufferFrameGpu(5);
-    auto bufferManager = new GstBufferManager(buffer, *streem);
-    auto gstDecoder = new GstDecoder(bufferManager);
-    auto encoder = new NvJpgEncoder(*streem);
+    auto bufferFrameGpu = new BufferFrameGpu(5);
+    auto bufferManager = new GstBufferManager(bufferFrameGpu, streem->GetStream());
 
-    auto pipeline = new EnginePipeline(trtEngine, buffer, bufferManager, gstDecoder,*streem,settingPipeline,encoder);
+    auto gstDecoder = new GstDecoder(bufferManager);
+    auto encoder = new NvJpgEncoder(streem->GetStream());
+
+    auto pipeline = new EnginePipeline(trtEngine, bufferFrameGpu, bufferManager, gstDecoder,streem->GetStream(),settingPipeline,encoder);
     pipeline->StartPipeline(connectString);
 
     while (true)
