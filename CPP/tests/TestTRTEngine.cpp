@@ -11,6 +11,8 @@
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/cudaimgproc.hpp>
 #include <opencv2/cudawarping.hpp>
+
+#include "CudaStream.h"
 #include "NvInfer.h"
 #include "NvJpgEncoder.h"
 #include "SettingPipeline.h"
@@ -226,6 +228,7 @@ void TestGstreamer()
 {
     cout << "______ Start Test_FullPass OK ______" << endl;
     auto pathWeight = "../weight/model_001.engine";
+    auto cudaStream = CreateCudaStream();
     auto configTrt = CreateTRTEngineConfig(pathWeight);
     auto trtEngine = CreateTRTEngine(configTrt);
     auto streem = &trtEngine->_stream;
@@ -240,15 +243,15 @@ void TestGstreamer()
     auto pipeline = new EnginePipeline(trtEngine, buffer, bufferManager, gstDecoder,*streem,settingPipeline,encoder);
     pipeline->StartPipeline(connectString);
 
-    auto countImg = 20000;
-    while (countImg > 0)
+    while (true)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         auto start = chrono::system_clock::now();
 
         vector<Detection> resultNms;
 
-        auto res = pipeline->GetResultImages(resultNms);
+        uint64_t timeStamp;
+        auto res = pipeline->GetResultImages(resultNms, timeStamp);
         if (!res)
         {
             continue;
@@ -256,13 +259,13 @@ void TestGstreamer()
 
         std::vector<unsigned char>* encodedImage = pipeline->GetFrame();
 
-        printf("   Target A size: %ld, \n",encodedImage->size());
+        printf("   Target A size: %ld, %ld\n",encodedImage->size(), timeStamp);
 
         auto endCapture = chrono::system_clock::now();
         info("elapsed time: " + to_string(chrono::duration_cast<chrono::microseconds>(endCapture - start).count()));
 
         cv::Mat image = cv::imdecode(cv::_InputArray(encodedImage->data(), encodedImage->size()), cv::IMREAD_COLOR);
-        DrawingResults(image, resultNms);
+        DrawingResults(image, resultNms,timeStamp);
     }
 
     cout << "______ End Test_FullPass OK ______" << endl;

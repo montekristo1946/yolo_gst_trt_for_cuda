@@ -47,20 +47,6 @@ TRTEngineConfig *CreateTRTEngineConfig(string pathWeight){
     return configTrt;
 }
 
-TRTEngine *CreateTRTEngine(TRTEngineConfig *configTrt){
-    // auto trtEngine = new TRTEngine();
-    //
-    // auto result = trtEngine->InitTRTEngine(configTrt->EngineName,
-    //                                        configTrt->DeviseId,
-    //                                        configTrt->ConfThresh,
-    //                                        configTrt->NmsThresh,
-    //                                        configTrt->MaxNumOutputBbox);
-    // if (result == false)
-    //     throw runtime_error("[Test_CreateTRTEngine] InitTRTEngine false");
-    //
-    // return trtEngine;
-    return nullptr;
-}
 
 void WriteOutPutToFile(const std::vector<float> &resultDl, const std::string &filename) {
     std::ofstream outputFile(filename);
@@ -149,6 +135,29 @@ void DrawingResults(Mat mat, PipelineOutputData * pipelineOutputData)
 
         rectangle(mat, Rect(x, y, width, height), color, 1, 8, 0);
         cv::putText(mat, to_string(rect.TimeStamp), cv::Point(10, ImageHeight-50), fontFace, fontScale, colorText);
+    };
+
+    imshow("Result", mat);
+    waitKey(1);
+}
+
+void DrawingResults(Mat mat, vector<Detection> rects,uint64_t timeStamp)
+{
+    cv::Scalar colorText(0, 0, 255); // Green color
+    int fontFace = cv::FONT_HERSHEY_SIMPLEX;
+    double fontScale = 0.75;
+
+    for (auto rect : rects)
+    {
+        auto width = (int)(rect.BBox[2]*ImageWidth);
+        auto height = (int)(rect.BBox[3]*ImageHeight);
+        auto x = (int)((rect.BBox[0] - rect.BBox[2] / 2) *ImageWidth);
+        auto y = (int)((rect.BBox[1] - rect.BBox[3] / 2) *ImageHeight);;
+        auto text = to_string(rect.Conf);
+        auto color = ColorInLabels[(int)rect.ClassId];
+
+        rectangle(mat, Rect(x, y, width, height), color, 1, 8, 0);
+        cv::putText(mat, to_string(timeStamp), cv::Point(10, ImageHeight-50), fontFace, fontScale, colorText);
     };
 
     imshow("Result", mat);

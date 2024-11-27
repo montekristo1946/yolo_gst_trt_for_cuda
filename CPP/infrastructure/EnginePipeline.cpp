@@ -102,6 +102,7 @@ cuda::GpuMat* EnginePipeline::ResizeImages(cuda::GpuMat* imageSrc)
     return imageResize;
 }
 
+
 bool EnginePipeline::GetResultImages( vector<Detection>& resultNms,uint64_t &timeStamp)
 {
     try
