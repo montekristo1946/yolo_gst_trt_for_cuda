@@ -3,9 +3,8 @@
 #include <vector>
 #include <iostream>
 #include <opencv2/core/cuda.hpp>
-#include <opencv2/cudaimgproc.hpp>
 #include "cuda_runtime_api.h"
-#include "IDispose.h"
+
 
 using namespace std;
 using namespace cv;

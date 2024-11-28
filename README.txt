@@ -1,5 +1,7 @@
 # yolo11, gstreemer and nvjpeg for gpu
 
+
+--------------------------------------------
 install ubuntu 24.10
 
 -------- install repository nvidia --------
@@ -90,7 +92,7 @@ sudo apt-get install -y libnvinfer-headers-plugin-dev=${version}
 sudo apt-get install -y libnvinfer-vc-plugin-dev=${version}
 
 -------- Install Dependencies -------------------------------
-sudo apt install \
+sudo apt install -y \
 libssl3 \
 libssl-dev \
 libgstreamer1.0-0 \
