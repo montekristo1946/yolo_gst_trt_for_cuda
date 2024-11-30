@@ -16,10 +16,10 @@ public:
         info("[NppFunction::Ctr]  Init  NppFunction");
     }
 
-    FrameGpu<Npp8u>* ResizeGrayScale( const FrameGpu<Npp8u>* imsSrc, const int widthNew, const int heightNew);
-    FrameGpu<Npp8u>* RGBToGray( const  FrameGpu<Npp8u>* imsSrc);
-    FrameGpu<Npp32f>* AddWeighted( FrameGpu<Npp32f>* imgBackground, const FrameGpu<Npp8u>* imgSrc,const float alpha = 0.04);
-    FrameGpu<Npp32f> *AbsDiff(const FrameGpu<Npp32f>* imgBackground, const FrameGpu<Npp32f>* imageDiff);
+    static FrameGpu<Npp8u>* ResizeGrayScale( const FrameGpu<Npp8u>* imsSrc, int widthNew, int heightNew);
+    static FrameGpu<Npp8u>* RGBToGray( const  FrameGpu<Npp8u>* imsSrc);
+    static FrameGpu<Npp32f>* AddWeighted( FrameGpu<Npp32f>* imgBackground, const FrameGpu<Npp8u>* imgSrc, float alpha = 0.04);
+    static FrameGpu<Npp32f> *AbsDiff(const FrameGpu<Npp32f>* imgBackground, const FrameGpu<Npp32f>* imageDiff);
 
 };
 

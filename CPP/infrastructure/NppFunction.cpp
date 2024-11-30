@@ -85,7 +85,7 @@ FrameGpu<float>* NppFunction::AddWeighted(FrameGpu<Npp32f>* backgroundImg, const
 
     auto status = nppiAddWeighted_8u32f_C1IR(
         sourceImg->ImagePtr(),
-        sourceImg->Width() * sizeof(Npp8u),
+        sourceImg->GetStep(),
         backgroundImg->ImagePtr(),
         backgroundImg->GetStep(),
         roiSize,
@@ -108,7 +108,7 @@ FrameGpu<Npp32f>* NppFunction::AbsDiff(const FrameGpu<Npp32f>* imgBackground, co
 
     Npp32f* imagePtr = nullptr;
     auto allSize = imgBackground->GetFulSize();
-    CUDA_FAILED(cudaMalloc((void **)(&imagePtr), allSize*sizeof(Npp32f) ));
+    CUDA_FAILED(cudaMalloc(reinterpret_cast<void**>(&imagePtr), allSize*sizeof(Npp32f) ));
 
 
     auto status = nppiAbsDiff_32f_C1R(

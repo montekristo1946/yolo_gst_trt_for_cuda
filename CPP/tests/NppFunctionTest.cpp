@@ -1,12 +1,10 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <nppdefs.h>
-#include <nppi.h>
 #include <cuda_runtime_api.h>
 #include <iostream>
 #include <MainLogger.hpp>
 
-#include <nppi_geometry_transforms.h>
 #include <opencv2/highgui.hpp>
 
 #include "CudaUtility.h"
@@ -34,18 +32,18 @@ void TestResize(int iter = 100000, bool isShow = false)
         auto frameGpuSrc = new FrameGpu(imageSrcPtr, mat.cols, mat.rows, timestamp, channel);
 
         auto start = chrono::system_clock::now();
-
         auto frameGpuResize = nppFunction->ResizeGrayScale(frameGpuSrc, 1000, 900);
 
         if (isShow)
         {
-            auto mat2 = cv::Mat(900, 1000, CV_8UC1);
+            auto mat2 = Mat(900, 1000, CV_8UC1);
             CUDA_FAILED(
                 cudaMemcpy(mat2.data, frameGpuResize->ImagePtr(), frameGpuResize->GetFulSize(),cudaMemcpyDeviceToHost));
-            cv::imshow("mat", mat);
-            cv::imshow("mat2", mat2);
-            cv::waitKey(1);
+            imshow("mat", mat);
+            imshow("mat2", mat2);
+            waitKey(1);
         }
+
         delete frameGpuResize;
         delete frameGpuSrc;
 
@@ -117,7 +115,7 @@ void TestAddWeighted(const Mat& matInput, FrameGpu<Npp32f>* frameBackground, Npp
     auto allSizeSrc = imgSrcGray.cols * imgSrcGray.rows;
     CUDA_FAILED(cudaMalloc((void **)(&imageSrcPtr), allSizeSrc*sizeof(Npp8u) ));
     CUDA_FAILED(cudaMemcpy(imageSrcPtr, imgSrcGray.data, allSizeSrc*sizeof(Npp8u), cudaMemcpyHostToDevice));
-    FrameGpu<Npp8u>* imgSrc = new FrameGpu(imageSrcPtr, imgSrcGray.cols, imgSrcGray.rows, 888, channel);
+    auto* imgSrc = new FrameGpu(imageSrcPtr, imgSrcGray.cols, imgSrcGray.rows, 888, channel);
 
     auto start = chrono::system_clock::now();
     frameBackground = nppFunction->AddWeighted(frameBackground, imgSrc);
@@ -139,14 +137,15 @@ void TestAddWeighted(const Mat& matInput, FrameGpu<Npp32f>* frameBackground, Npp
 
 }
 
-void TestAddWeightedOnVideo()
+void TestAddWeightedOnVideo(int inter)
 {
+    std::cout << " --- TestAddWeightedOnVideo start   ---" << std::endl;
     string filename = "/mnt/Disk_D/Document/Teplovisors/Dataset/010/11.09.2024_001.avi";
     VideoCapture capture(filename, cv::CAP_FFMPEG);
     Mat frame;
 
     if (!capture.isOpened())
-        throw "Error when reading steam_avi";
+        throw  std::runtime_error("Error when reading steam_avi");
 
     auto nppFunction = new NppFunction();
 
@@ -161,7 +160,7 @@ void TestAddWeightedOnVideo()
     auto frameBackground = new FrameGpu(retImage, width, height, timestamp, channel);
 
     namedWindow("w", 1);
-    for (; ;)
+    for (int i = 0; i < inter; i++)
     {
         capture >> frame;
         if (frame.empty())
@@ -170,7 +169,7 @@ void TestAddWeightedOnVideo()
         imshow("w", frame);
         waitKey(1); // waits to display frame
     }
-    waitKey(0);
+    std::cout << " --- TestAddWeightedOnVideo End ok  ---" << std::endl;
 }
 
 FrameGpu<Npp32f>* IntiImgFloat(const Mat& mat)
@@ -240,9 +239,9 @@ int main(int argc, char* argv[])
     auto logPathFileString = "./Logs/NppFunctionTest.log";
     auto mainLogger = MainLogger(logPathFileString);
 
-    TestResize(100000, false);
-    // TestConvertToGray(100000, true);
-    // TestAddWeightedOnVideo();
-    // TestAbsDiff(100000, true);
+    TestResize(10, true);
+    TestConvertToGray(10, true);
+    TestAbsDiff(10, true);
+    TestAddWeightedOnVideo(10);
     return 0;
 }
