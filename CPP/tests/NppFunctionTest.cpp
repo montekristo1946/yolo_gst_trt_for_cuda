@@ -13,13 +13,15 @@
 #include "FrameGpu.h"
 #include "NppFunction.h"
 
+using namespace cv;
+
 void TestResize(int iter = 100000, bool isShow = false)
 {
     std::cout << " --- TestResize Run  ---" << std::endl;
     auto nppFunction = new NppFunction();
 
     //create input image
-    Mat mat = cv::imread("../examples/img_001.jpg", cv::IMREAD_GRAYSCALE);
+    Mat mat = imread("../examples/img_001.jpg", cv::IMREAD_GRAYSCALE);
     auto channel = 1;
     auto allSizeSrc = mat.cols * mat.rows * channel;
     uint64_t timestamp = 999;
@@ -119,8 +121,9 @@ void TestAddWeighted(const Mat& matInput, FrameGpu<Npp32f>* frameBackground, Npp
 
     auto start = chrono::system_clock::now();
     frameBackground = nppFunction->AddWeighted(frameBackground, imgSrc);
-
+    delete imgSrc;
     auto endCapture = chrono::system_clock::now();
+
     info("elapsed time: " +
         to_string(chrono::duration_cast<chrono::microseconds>(endCapture - start).count()));
 
@@ -133,7 +136,7 @@ void TestAddWeighted(const Mat& matInput, FrameGpu<Npp32f>* frameBackground, Npp
     imshow("mat", imgSrcGray);
     imshow("dst", dst);
 
-    delete imgSrc;
+
 }
 
 void TestAddWeightedOnVideo()
@@ -237,9 +240,9 @@ int main(int argc, char* argv[])
     auto logPathFileString = "./Logs/NppFunctionTest.log";
     auto mainLogger = MainLogger(logPathFileString);
 
-    // TestResize(100000, true);
+    TestResize(100000, false);
     // TestConvertToGray(100000, true);
     // TestAddWeightedOnVideo();
-    TestAbsDiff(100000, false);
+    // TestAbsDiff(100000, true);
     return 0;
 }

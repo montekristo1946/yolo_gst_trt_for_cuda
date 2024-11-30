@@ -7,113 +7,104 @@
 
 
 
-FrameGpu<Npp8u>* NppFunction::ResizeGrayScale( const FrameGpu<Npp8u>* imsSrc, const int widthNew, const int heightNew)
+FrameGpu<Npp8u>* NppFunction::ResizeGrayScale(const FrameGpu<Npp8u>* sourceImage, int newWidth, int newHeight)
 {
-    if(!imsSrc || widthNew <= 0 || heightNew <= 0 || imsSrc->Channel() !=1)
-        throw std::runtime_error("[NppFunction::ResizeGrayScale] Null reference exception");
+    if (!sourceImage || newWidth <= 0 || newHeight <= 0 || sourceImage->Channel() != 1)
+        throw std::invalid_argument("[NppFunction::ResizeGrayScale] Invalid input parameters");
 
-    auto interpolationMode = NPPI_INTER_LINEAR;
-    unsigned char *  retImage= nullptr;
-    auto timeStamp = imsSrc->Timestamp();
-    auto channel = imsSrc->Channel();
+    NppiSize srcSize = { sourceImage->Width(), sourceImage->Height() };
+    NppiRect srcRectROI = { 0, 0, sourceImage->Width(), sourceImage->Height() };
 
-    auto allSizeDst = widthNew*heightNew*imsSrc->Channel();
-    CUDA_FAILED(cudaMalloc(&retImage, allSizeDst));
+    NppiSize dstSize = { newWidth, newHeight };
+    NppiRect dstRectROI = { 0, 0, newWidth, newHeight };
 
+    int pitchSrc = sourceImage->Width(); // only grayscale
+    int pitchDst = newWidth;
 
-    NppiSize oSrcSize = { imsSrc->Width(), imsSrc->Height() };
-    NppiRect oSrcRectROI = { 0, 0, imsSrc->Width(), imsSrc->Height()};
+    unsigned char* resizedImage = nullptr;
+    CUDA_FAILED(cudaMalloc(&resizedImage, newWidth * newHeight));
 
-    NppiSize oDstSize = { widthNew, heightNew};
-    NppiRect oDstRectROI = { 0, 0, widthNew, heightNew};
-
-    auto pitchSrc = imsSrc->Width(); //only grayscale
-    auto pitchDst = widthNew;
-
-    auto status = nppiResize_8u_C1R(
-        imsSrc->ImagePtr(),
+    NppStatus status = nppiResize_8u_C1R(
+        sourceImage->ImagePtr(),
         pitchSrc,
-        oSrcSize,
-        oSrcRectROI,
-        retImage,
+        srcSize,
+        srcRectROI,
+        resizedImage,
         pitchDst,
-        oDstSize,
-        oDstRectROI,
-        interpolationMode
-        );
-
+        dstSize,
+        dstRectROI,
+        NPPI_INTER_LINEAR
+    );
 
     if (status != NPP_SUCCESS) {
-        auto name = magic_enum::enum_name(status);
-        throw runtime_error("[NppFunction::ResizeGrayScale] nppiResize_8u_C1R false" + string(name));
+        std::string err = "[NppFunction::ResizeGrayScale] nppiResize_8u_C1R failed: " + std::string(magic_enum::enum_name(status));
+        cudaFree(resizedImage);
+        throw std::runtime_error(err);
     }
 
-    return  new FrameGpu(retImage, widthNew, heightNew, timeStamp, channel);
+    return new FrameGpu(resizedImage, newWidth, newHeight, sourceImage->Timestamp(), sourceImage->Channel());
 }
 
 
-FrameGpu<Npp8u>* NppFunction::RGBToGray(const FrameGpu<Npp8u>* imsSrc)
+FrameGpu<Npp8u>* NppFunction::RGBToGray(const FrameGpu<Npp8u>* sourceImage)
 {
-    if(!imsSrc ||  imsSrc->Channel() !=3)
-        throw std::runtime_error("[NppFunction::RGBToGray] fail input parameters");
+    if (!sourceImage || sourceImage->Channel() != 3)
+        throw std::invalid_argument("[NppFunction::RGBToGray] Invalid input parameters");
 
-    unsigned char *  retImage= nullptr;
-    auto timeStamp = imsSrc->Timestamp();
-    auto channel = 1;
-    auto width = imsSrc->Width();
-    auto height = imsSrc->Height();
-    auto nSrStep = imsSrc->Width() * imsSrc->Channel();
-    auto nDstStep = width * channel;
+    Npp8u* destinationImage = nullptr;
+    const auto width = sourceImage->Width();
+    const auto height = sourceImage->Height();
+    const auto sourceStep = sourceImage->Width() * sourceImage->Channel();
+    const auto destinationStep = width;
 
-    auto allSizeDst = imsSrc->Width()*imsSrc->Height()*channel;
-    CUDA_FAILED(cudaMalloc(&retImage, allSizeDst));
+    const auto destinationSize = width * height;
+    CUDA_FAILED(cudaMalloc(&destinationImage, destinationSize));
 
+    NppiSize roiSize = {width, height};
+    const auto status = nppiRGBToGray_8u_C3C1R(
+        sourceImage->ImagePtr(),
+        sourceStep,
+        destinationImage,
+        destinationStep,
+        roiSize);
 
-    NppiSize oSizeROI = {width, height};
-    auto status = nppiRGBToGray_8u_C3C1R(
-    imsSrc->ImagePtr(),
-        nSrStep,
-        retImage,
-        nDstStep,
-        oSizeROI);
+    if (status != NPP_SUCCESS)
+        throw std::runtime_error("[NppFunction::RGBToGray] nppiRGBToGray_8u_C3C1R failed");
 
-    if (status != NPP_SUCCESS) {
-        auto name = magic_enum::enum_name(status);
-        throw runtime_error("TestConvertToGray failed nppiRGBToGray_8u_C3C1R "+ string(name) );
-    }
-
-    return  new FrameGpu(retImage, width, height, timeStamp, channel);
+    return new FrameGpu(destinationImage, width, height, sourceImage->Timestamp(), 1);
 }
 
-FrameGpu<float>* NppFunction::AddWeighted( FrameGpu<Npp32f>* imgBackground, const FrameGpu<Npp8u>* imgSrc,const float alpha )
-{
-    if(!imgBackground ||  imgBackground->Channel() !=1 || !imgSrc ||  imgSrc->Channel() !=1)
-        throw std::runtime_error("[NppFunction::RGBToGray] fail input parameters");
 
-    NppiSize oSizeROI = {imgSrc->Width(), imgSrc->Height()};
+
+FrameGpu<float>* NppFunction::AddWeighted(FrameGpu<Npp32f>* backgroundImg, const FrameGpu<Npp8u>* sourceImg, const float alpha)
+{
+    if (!backgroundImg || backgroundImg->Channel() != 1 || !sourceImg || sourceImg->Channel() != 1)
+        throw std::invalid_argument("[NppFunction::AddWeighted] Invalid input parameters");
+
+    NppiSize roiSize = {sourceImg->Width(), sourceImg->Height()};
 
     auto status = nppiAddWeighted_8u32f_C1IR(
-        imgSrc->ImagePtr(),
-        imgSrc->Width()*sizeof(Npp8u),
-        imgBackground->ImagePtr(),
-        imgBackground->GetStep(),
-        oSizeROI,
+        sourceImg->ImagePtr(),
+        sourceImg->Width() * sizeof(Npp8u),
+        backgroundImg->ImagePtr(),
+        backgroundImg->GetStep(),
+        roiSize,
         alpha);
 
     if (status != NPP_SUCCESS)
     {
-        auto name = magic_enum::enum_name(status);
-        throw runtime_error("TestConvertToGray failed nppiAddWeighted_8u32f_C1IR " + string(name));
+        auto statusName = magic_enum::enum_name(status);
+        throw std::runtime_error("[NppFunction::AddWeighted] nppiAddWeighted_8u32f_C1IR failed: " + std::string(statusName));
     }
 
-    imgBackground->SetTimestamp(imgSrc->Timestamp());
-    return imgBackground;
+    backgroundImg->SetTimestamp(sourceImg->Timestamp());
+    return backgroundImg;
 }
 
 FrameGpu<Npp32f>* NppFunction::AbsDiff(const FrameGpu<Npp32f>* imgBackground, const FrameGpu<Npp32f>* imageDiff)
 {
     if(!imgBackground ||  imgBackground->Channel() !=1 || !imageDiff ||  imageDiff->Channel() !=1)
-        throw std::runtime_error("[NppFunction::AbsDiff] fail input parameters");
+        throw std::invalid_argument("[NppFunction::AbsDiff] fail input parameters");
 
     Npp32f* imagePtr = nullptr;
     auto allSize = imgBackground->GetFulSize();
