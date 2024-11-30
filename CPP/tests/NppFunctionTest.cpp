@@ -59,7 +59,7 @@ void TestResize( int iter = 100000)
 }
 
 
-void TestConvertToGray(int iter = 1)
+void TestConvertToGray(int iter = 100000)
 {
     std::cout << " --- TestConvertToGray Run  ---" << std::endl;
     auto nppFunction = new NppFunction();
@@ -82,14 +82,14 @@ void TestConvertToGray(int iter = 1)
         auto frameGpuGray = nppFunction->RGBToGray(frameGpuSrc);
 
         // auto mat2 = cv::Mat(mat.rows, mat.cols, CV_8UC1);
-
+        //
         // CUDA_FAILED(  cudaMemcpy(mat2.data, frameGpuGray->ImagePtr(), frameGpuGray->GetFulSize(),cudaMemcpyDeviceToHost));
         // cv::imshow("mat", mat);
         // cv::imshow("mat2", mat2);
         // cv::waitKey(1);
 
-        // delete frameGpuGray;
-        // delete frameGpuSrc;
+        delete frameGpuGray;
+        delete frameGpuSrc;
 
         auto endCapture = chrono::system_clock::now();
         info("elapsed time: " +
@@ -100,43 +100,7 @@ void TestConvertToGray(int iter = 1)
 
     delete nppFunction;
 
-
     std::cout << " --- TestConvertToGray OK ---" << std::endl;
-/*
-  cv::Mat mat = cv::imread("../examples/img_001.jpg", cv::IMREAD_COLOR);
-
-    //create input image
-    auto channel = 3;
-    auto allSizeSrc = mat.cols * mat.rows * channel;
-    auto allSizeDst = mat.cols * mat.rows * 1;
-    auto nSrStep = mat.step[0];
-    auto nDstStep = mat.cols;
-    unsigned char* imageSrcPtr = nullptr;
-    CUDA_FAILED( cudaMalloc(&imageSrcPtr, allSizeSrc));
-    CUDA_FAILED(  cudaMemcpy(imageSrcPtr, mat.data, allSizeSrc, cudaMemcpyHostToDevice));
-
-    unsigned char* imageDstPtr = nullptr;
-    cudaMalloc(&imageDstPtr, allSizeDst);
-
-    NppiSize oSizeROI = {mat.cols, mat.rows};
-    auto status = nppiRGBToGray_8u_C3C1R(
-    imageSrcPtr,
-        nSrStep,
-        imageDstPtr,
-        nDstStep,
-        oSizeROI);
-
-    if (status != NPP_SUCCESS) {
-        throw runtime_error("TestConvertToGray failed nppiRGBToGray_8u_C3C1R ");
-    }
-
-    auto mat2 = cv::Mat(mat.rows, mat.cols, CV_8UC1);
-
-    CUDA_FAILED(  cudaMemcpy(mat2.data, imageDstPtr, allSizeDst,cudaMemcpyDeviceToHost));
-    cv::imshow("mat", mat);
-    cv::imshow("mat2", mat2);
-    cv::waitKey();*/
-
 }
 
 int main(int argc, char* argv[])

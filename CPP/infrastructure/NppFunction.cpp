@@ -62,7 +62,7 @@ FrameGpu* NppFunction::RGBToGray(const FrameGpu* imsSrc)
     auto channel = 1;
     auto width = imsSrc->Width();
     auto height = imsSrc->Height();
-    auto nSrStep = imsSrc->Width() *imsSrc->Height() * imsSrc->Channel();
+    auto nSrStep = imsSrc->Width() * imsSrc->Channel();
     auto nDstStep = width;
 
     auto allSizeDst = imsSrc->Width()*imsSrc->Height()*channel;
