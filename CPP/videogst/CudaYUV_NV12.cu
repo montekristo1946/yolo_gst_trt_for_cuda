@@ -38,7 +38,7 @@ __global__ void NV12ToRGB(uint32_t* srcImage,
 {
     int x, y;
     uint32_t yuv101010Pel[2];
-    uint32_t processingPitch = ((width) + 63) & ~63;
+    uint32_t processingPitch = ((width) + 63) & ~63; //TODO: удали...
     uint8_t* srcImageU8 = (uint8_t*)srcImage;
 
     processingPitch = nSourcePitch;
