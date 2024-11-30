@@ -32,7 +32,8 @@ void TestOpenCvVideoLoad() {
         imshow("w", frame);
         waitKey(20); // waits to display frame
     }
-    waitKey(0);}
+    waitKey(0);
+}
 
 int main(int argc, char *argv[]) {
 

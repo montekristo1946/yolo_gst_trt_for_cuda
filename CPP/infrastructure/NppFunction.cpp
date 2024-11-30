@@ -4,10 +4,11 @@
 
 #include "NppFunction.h"
 
+#include <nppi_arithmetic_and_logical_operations.h>
 #include <nppi_color_conversion.h>
 
 
-FrameGpu* NppFunction::ResizeGrayScale( const FrameGpu* imsSrc, const int widthNew, const int heightNew)
+FrameGpu<Npp8u>* NppFunction::ResizeGrayScale( const FrameGpu<Npp8u>* imsSrc, const int widthNew, const int heightNew)
 {
     if(!imsSrc || widthNew <= 0 || heightNew <= 0 || imsSrc->Channel() !=1)
         throw std::runtime_error("[NppFunction::ResizeGrayScale] Null reference exception");
@@ -48,11 +49,11 @@ FrameGpu* NppFunction::ResizeGrayScale( const FrameGpu* imsSrc, const int widthN
         throw runtime_error("[NppFunction::ResizeGrayScale] nppiResize_8u_C1R false" + string(name));
     }
 
-    return  new FrameGpu(retImage, widthNew, heightNew, timeStamp, channel);
+    return  new FrameGpu<Npp8u>(retImage, widthNew, heightNew, timeStamp, channel);
 }
 
 
-FrameGpu* NppFunction::RGBToGray(const FrameGpu* imsSrc)
+FrameGpu<Npp8u>* NppFunction::RGBToGray(const FrameGpu<Npp8u>* imsSrc)
 {
     if(!imsSrc ||  imsSrc->Channel() !=3)
         throw std::runtime_error("[NppFunction::RGBToGray] fail input parameters");
@@ -63,7 +64,7 @@ FrameGpu* NppFunction::RGBToGray(const FrameGpu* imsSrc)
     auto width = imsSrc->Width();
     auto height = imsSrc->Height();
     auto nSrStep = imsSrc->Width() * imsSrc->Channel();
-    auto nDstStep = width;
+    auto nDstStep = width * channel;
 
     auto allSizeDst = imsSrc->Width()*imsSrc->Height()*channel;
     CUDA_FAILED(cudaMalloc(&retImage, allSizeDst));
@@ -83,4 +84,29 @@ FrameGpu* NppFunction::RGBToGray(const FrameGpu* imsSrc)
     }
 
     return  new FrameGpu(retImage, width, height, timeStamp, channel);
+}
+
+FrameGpu<float>* NppFunction::AddWeighted( FrameGpu<Npp32f>* imgBackground, const FrameGpu<Npp8u>* imgSrc,const float alpha )
+{
+    if(!imgBackground ||  imgBackground->Channel() !=1 || !imgSrc ||  imgSrc->Channel() !=1)
+        throw std::runtime_error("[NppFunction::RGBToGray] fail input parameters");
+
+    NppiSize oSizeROI = {imgSrc->Width(), imgSrc->Height()};
+
+    auto status = nppiAddWeighted_8u32f_C1IR(
+        imgSrc->ImagePtr(),
+        imgSrc->Width()*sizeof(Npp8u),
+        imgBackground->ImagePtr(),
+        imgBackground->GetStep(),
+        oSizeROI,
+        alpha);
+
+
+    if (status != NPP_SUCCESS)
+    {
+        auto name = magic_enum::enum_name(status);
+        throw runtime_error("TestConvertToGray failed nppiAddWeighted_8u32f_C1IR " + string(name));
+    }
+
+    return imgBackground;
 }

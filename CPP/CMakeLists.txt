@@ -86,6 +86,8 @@ set(GST_LIBS gobject glib gstreamer gstapp gstpbutils gstsdp)
 find_library_create_target(nppc "nppc" SHARED ${CUDA_LIB_DIR})
 find_library_create_target(nppig "nppig" SHARED ${CUDA_LIB_DIR})
 find_library_create_target(nppicc "nppicc" SHARED ${CUDA_LIB_DIR})
+find_library_create_target(nppial "nppial" SHARED ${CUDA_LIB_DIR})
+find_library_create_target(nppisu "nppisu" SHARED ${CUDA_LIB_DIR})
 
 
 set(ALL_LIB ${OpenCV_LIBS} ${TensorRT_LIBS} cudart libnvjpeg ${GST_LIBS})
@@ -175,7 +177,7 @@ target_link_libraries(TestTRTEngine PUBLIC TRTLayer GstreamerLib NvJpgEncoderlib
 add_executable(TestNppFunction
         ${PROJECT_SOURCE_DIR}/tests/NppFunctionTest.cpp
         ${PROJECT_SOURCE_DIR}/infrastructure/NppFunction.cpp)
-target_link_libraries(TestNppFunction PUBLIC ${ALL_LIB} ${OpenCV_LIBS} stdc++fs nppc nppig nppicc)
+target_link_libraries(TestNppFunction PUBLIC ${ALL_LIB} ${OpenCV_LIBS} stdc++fs nppc nppig nppicc nppial nppisu)
 
 # TestGstreamerLib --------------------------------------------------------------------------------------------------------------
 #add_executable(TestGstDecoder  ${PROJECT_SOURCE_DIR}/tests/TestGstDecoder.cpp)
