@@ -120,7 +120,7 @@ bool EnginePipeline::GetResultImages( vector<Detection>& resultNms,uint64_t &tim
 
 
         //TODO: добавить проверку по времени...
-        timeStamp = frameUnPrt->GetTimestamp();
+        timeStamp = frameUnPrt->Timestamp();
 
         // unique_ptr<cuda::GpuMat> imageResizeUnPrt(ResizeImages(imageSrc));
 

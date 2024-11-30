@@ -82,6 +82,12 @@ find_library_create_target(gstsdp "libgstsdp-1.0.so" SHARED ${GST_LIB_DIR})
 find_library_create_target(glib "libglib-2.0.so" SHARED ${GLIB_LIB_DIR})
 set(GST_LIBS gobject glib gstreamer gstapp gstpbutils gstsdp)
 
+#Npp
+find_library_create_target(nppc "nppc" SHARED ${CUDA_LIB_DIR})
+find_library_create_target(nppig "nppig" SHARED ${CUDA_LIB_DIR})
+find_library_create_target(nppicc "nppicc" SHARED ${CUDA_LIB_DIR})
+
+
 set(ALL_LIB ${OpenCV_LIBS} ${TensorRT_LIBS} cudart libnvjpeg ${GST_LIBS})
 set(ALL_INCLUDE_LIB ${OpenCV_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR} )
 
@@ -154,10 +160,10 @@ target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs  )
 
 
 # TestExtensionCHarp --------------------------------------------------------------------------------------------------------------
-#add_executable(TestExtensionCharp ${PROJECT_SOURCE_DIR}/tests/TestExtensionCharp.cpp
-#        tests/Helper.hpp)
-#target_include_directories(TestExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
-#target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharp  )
+add_executable(TestExtensionCharp ${PROJECT_SOURCE_DIR}/tests/TestExtensionCharp.cpp
+        tests/Helper.hpp)
+target_include_directories(TestExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
+target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharp  )
 
 ## TestTRTEngine --------------------------------------------------------------------------------------------------------------
 add_executable(TestTRTEngine
@@ -165,6 +171,11 @@ add_executable(TestTRTEngine
         tests/Helper.hpp)
 target_link_libraries(TestTRTEngine PUBLIC TRTLayer GstreamerLib NvJpgEncoderlib )
 
+
+add_executable(TestNppFunction
+        ${PROJECT_SOURCE_DIR}/tests/NppFunctionTest.cpp
+        ${PROJECT_SOURCE_DIR}/infrastructure/NppFunction.cpp)
+target_link_libraries(TestNppFunction PUBLIC ${ALL_LIB} ${OpenCV_LIBS} stdc++fs nppc nppig nppicc)
 
 # TestGstreamerLib --------------------------------------------------------------------------------------------------------------
 #add_executable(TestGstDecoder  ${PROJECT_SOURCE_DIR}/tests/TestGstDecoder.cpp)

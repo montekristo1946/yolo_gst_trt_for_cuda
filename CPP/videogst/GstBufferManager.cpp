@@ -37,8 +37,7 @@ cuda::GpuMat* GstBufferManager::CreateImage(const NvBufSurfaceParams& nvBufSurfa
         throw std::runtime_error("[GstBufferManager::CreateImage] failed to allocate CUDA buffer of  bytes");
     }
 
-    if (CUDA_FAILED(
-        _cudaYUV_NV12.CudaNV12ToRGB(nvBufSurfaceParams.dataPtr, (uchar3*)converImage, width, height, pitch,*_stream)))
+    if (CUDA_FAILED( _cudaYUV_NV12.CudaNV12ToRGB(nvBufSurfaceParams.dataPtr, (uchar3*)converImage, width, height, pitch,*_stream)))
     {
         throw std::runtime_error("[GstBufferManager::CreateImage] failed cudaYUV_NV12.CudaNV12ToRGB ");
     }
