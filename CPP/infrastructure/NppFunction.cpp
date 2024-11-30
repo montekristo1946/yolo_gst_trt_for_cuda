@@ -4,8 +4,7 @@
 
 #include "NppFunction.h"
 
-#include <nppi_arithmetic_and_logical_operations.h>
-#include <nppi_color_conversion.h>
+
 
 
 FrameGpu<Npp8u>* NppFunction::ResizeGrayScale( const FrameGpu<Npp8u>* imsSrc, const int widthNew, const int heightNew)
@@ -49,7 +48,7 @@ FrameGpu<Npp8u>* NppFunction::ResizeGrayScale( const FrameGpu<Npp8u>* imsSrc, co
         throw runtime_error("[NppFunction::ResizeGrayScale] nppiResize_8u_C1R false" + string(name));
     }
 
-    return  new FrameGpu<Npp8u>(retImage, widthNew, heightNew, timeStamp, channel);
+    return  new FrameGpu(retImage, widthNew, heightNew, timeStamp, channel);
 }
 
 
@@ -101,12 +100,45 @@ FrameGpu<float>* NppFunction::AddWeighted( FrameGpu<Npp32f>* imgBackground, cons
         oSizeROI,
         alpha);
 
-
     if (status != NPP_SUCCESS)
     {
         auto name = magic_enum::enum_name(status);
         throw runtime_error("TestConvertToGray failed nppiAddWeighted_8u32f_C1IR " + string(name));
     }
 
+    imgBackground->SetTimestamp(imgSrc->Timestamp());
     return imgBackground;
+}
+
+FrameGpu<Npp32f>* NppFunction::AbsDiff(const FrameGpu<Npp32f>* imgBackground, const FrameGpu<Npp32f>* imageDiff)
+{
+    if(!imgBackground ||  imgBackground->Channel() !=1 || !imageDiff ||  imageDiff->Channel() !=1)
+        throw std::runtime_error("[NppFunction::AbsDiff] fail input parameters");
+
+    Npp32f* imagePtr = nullptr;
+    auto allSize = imgBackground->GetFulSize();
+    CUDA_FAILED(cudaMalloc((void **)(&imagePtr), allSize*sizeof(Npp32f) ));
+
+
+    auto status = nppiAbsDiff_32f_C1R(
+        imgBackground->ImagePtr(),
+        imgBackground->GetStep(),
+        imageDiff->ImagePtr(),
+        imageDiff->GetStep(),
+        imagePtr,
+        imgBackground->GetStep(),
+        NppiSize{ imgBackground->Width(), imgBackground->Height() }
+        );
+
+    if (status != NPP_SUCCESS) {
+        auto name = magic_enum::enum_name(status);
+        throw runtime_error("TestConvertToGray failed nppiAbsDiff_32f_C1R "+ string(name) );
+    }
+
+    return  new FrameGpu(
+        imagePtr,
+        imgBackground->Width(),
+        imgBackground->Height(),
+        imgBackground->Timestamp(),
+        imgBackground->Channel());
 }

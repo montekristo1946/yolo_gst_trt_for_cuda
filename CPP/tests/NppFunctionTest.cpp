@@ -170,6 +170,68 @@ void TestAddWeightedOnVideo()
     waitKey(0);
 }
 
+FrameGpu<Npp32f>* IntiImgFloat(const Mat& mat)
+{
+    Npp32f* imagePtr = nullptr;
+    auto allSize = mat.cols * mat.rows;
+    CUDA_FAILED(cudaMalloc((void **)(&imagePtr), allSize*sizeof(Npp32f) ));
+    CUDA_FAILED(cudaMemcpy(imagePtr, mat.data, allSize*sizeof(Npp32f), cudaMemcpyHostToDevice));
+
+    FrameGpu<Npp32f>* imgSrc = new FrameGpu(imagePtr, mat.cols, mat.rows, 888, mat.channels());
+    return imgSrc;
+}
+
+void TestAbsDiff(int iter= 100000, bool isShow = false)
+{
+    std::cout << " --- TestAbsDiff Run  ---" << std::endl;
+    auto nppFunction = new NppFunction();
+
+    Mat matFonSrc = cv::imread("../examples/img_002.jpg", cv::IMREAD_GRAYSCALE);
+    Mat matStc = cv::imread("../examples/img_003.jpg", cv::IMREAD_GRAYSCALE);
+
+    auto width = matFonSrc.cols;
+    auto height = matFonSrc.rows;
+
+    Mat matFonFloat;
+    matFonSrc.convertTo(matFonFloat, CV_32FC1);
+    Mat matStcFloat;
+    matStc.convertTo(matStcFloat, CV_32FC1);
+
+    for (int i = 0; i < iter; i++)
+    {
+        auto* imageFonPtr = IntiImgFloat(matFonFloat);
+        auto* imageStcPtr = IntiImgFloat(matStcFloat);
+
+        auto start = chrono::system_clock::now();
+        auto resDiff = nppFunction->AbsDiff(imageFonPtr, imageStcPtr);
+
+        if(isShow)
+        {
+            auto allSizeDst = resDiff->Width() * resDiff->Height();
+            auto mat2 = Mat(resDiff->Width(), resDiff->Height(), CV_32FC1, width* sizeof(float));
+            CUDA_FAILED(cudaMemcpy(mat2.data, resDiff->ImagePtr(), allSizeDst* sizeof(float), cudaMemcpyDeviceToHost));
+            Mat dst;
+            mat2.convertTo(dst, CV_8UC1);
+            imshow("dst", dst);
+            imshow("matFonSrc", matFonSrc);
+            imshow("matStc", matStc);
+            waitKey(1);
+        }
+
+        delete imageFonPtr;
+        delete imageStcPtr;
+        delete resDiff;
+
+        auto endCapture = chrono::system_clock::now();
+        info("elapsed time: " +
+            to_string(chrono::duration_cast<chrono::microseconds>(endCapture - start).count()) +
+            " iter: " + " " + to_string(i));
+
+    }
+
+    std::cout << " --- TestAbsDiff End ok  ---" << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
     auto logPathFileString = "./Logs/NppFunctionTest.log";
@@ -177,6 +239,7 @@ int main(int argc, char* argv[])
 
     // TestResize(100000, true);
     // TestConvertToGray(100000, true);
-    TestAddWeightedOnVideo();
+    // TestAddWeightedOnVideo();
+    TestAbsDiff(100000, false);
     return 0;
 }

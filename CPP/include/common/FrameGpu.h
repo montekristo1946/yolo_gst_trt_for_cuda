@@ -1,13 +1,8 @@
 #ifndef FRAMEGPU_H
 #define FRAMEGPU_H
 
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/core/cuda.hpp>
-
 #include "CudaUtility.h"
 
-using namespace cv;
 
 template <typename T>
 class FrameGpu
@@ -48,9 +43,12 @@ public:
     T* ImagePtr()  const { return _images; }
 
     unsigned int GetFulSize() const { return _width * _height * _channel; }
+    void SetTimestamp(uint64_t timestamp)
+    {
+        _timestamp = timestamp;
+    };
 
 private:
-    // cuda::GpuMat* _images;
     T * _images = nullptr;
     uint64_t _timestamp = 0;
     int _width = -1;
