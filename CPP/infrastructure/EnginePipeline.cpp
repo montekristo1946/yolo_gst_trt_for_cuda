@@ -22,8 +22,6 @@ EnginePipeline::EnginePipeline(TRTEngine* trtEngine, BufferFrameGpu* bufferFrame
     auto channel = 1;
     _imageBackground = FrameGpu<
         Npp32f>::CreateNew(_settingPipeline->WidthImgMl, _settingPipeline->HeightImgMl, channel);
-    // _difImage = FrameGpu<
-    // Npp32f>::CreateNew(_settingPipeline->WidthImgMl, _settingPipeline->HeightImgMl, channel);
 }
 
 bool EnginePipeline::StartPipeline(string connectCamera)
@@ -71,7 +69,6 @@ void EnginePipeline::LoadImgToTrt()
 
     auto currentImgFloat = _nppFunctions->ConvertFrame8u32f(_currentImage);
     auto resDiffImg = _nppFunctions->AbsDiff(_imageBackground, currentImgFloat);
-
 
     float* ptrImgGPU = static_cast<float*>(_trtEngine->_buffers[0]);
     auto oneLayerSize = _settingPipeline->WidthImgMl * _settingPipeline->HeightImgMl;
@@ -126,12 +123,9 @@ bool EnginePipeline::GetResultImages(vector<Detection>& resultNms, uint64_t& tim
         if (!resulDoInferenceAsync)
             return false;
 
-
         auto resConvertRect = ConverterDetection(resultNms);
         if (!resConvertRect)
             return false;
-
-
 
         return true;
     }

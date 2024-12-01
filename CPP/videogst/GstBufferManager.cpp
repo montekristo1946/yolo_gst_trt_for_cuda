@@ -29,7 +29,7 @@ FrameGpu<Npp8u>* GstBufferManager::CreateImage(const NvBufSurfaceParams& nvBufSu
     if (width <= 0 || height <= 0 || pitch <= 0)
         throw std::runtime_error("[GstBufferManager::CreateImage] Invalid image size");
 
-    const size_t rgbBufferSize = width * height * sizeof(uchar3) * 8; //TODO: почему цифра 8?
+    const size_t rgbBufferSize = width * height * sizeof(uchar3) ;
     void* converImage = NULL;
 
     CUDA_FAILED(cudaMallocAsync(&converImage, rgbBufferSize,*_stream));
