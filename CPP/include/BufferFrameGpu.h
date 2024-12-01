@@ -4,12 +4,12 @@
 #define BufferFrameGpu_H
 #include <IDispose.h>
 #include <queue>
-#include <opencv2/core.hpp>
 #include "cuda_runtime_api.h"
 #include "common/FrameGpu.h"
-
+#include <nppdefs.h>
+#include <spdlog/spdlog.h>
 using namespace std;
-using namespace cv;
+
 
 class BufferFrameGpu: public IDispose
 {
@@ -18,11 +18,11 @@ public:
 
     ~BufferFrameGpu();
 
-    bool Enqueue(FrameGpu* frame);
-    bool Dequeue(FrameGpu** frame);
+    bool Enqueue(FrameGpu<Npp8u>* frame);
+    bool Dequeue(FrameGpu<Npp8u>** frame);
 
 private:
-    std::queue<FrameGpu*> _queueFrame;
+    std::queue<FrameGpu<Npp8u>*> _queueFrame;
     std::mutex _mtx;
     unsigned _sizeBuffer;
 };

@@ -88,12 +88,13 @@ find_library_create_target(nppig "nppig" SHARED ${CUDA_LIB_DIR})
 find_library_create_target(nppicc "nppicc" SHARED ${CUDA_LIB_DIR})
 find_library_create_target(nppial "nppial" SHARED ${CUDA_LIB_DIR})
 find_library_create_target(nppisu "nppisu" SHARED ${CUDA_LIB_DIR})
+find_library_create_target(npps "npps" SHARED ${CUDA_LIB_DIR})
 
-
-set(ALL_LIB ${OpenCV_LIBS} ${TensorRT_LIBS} cudart libnvjpeg ${GST_LIBS})
+set(ALL_LIB ${OpenCV_LIBS} ${TensorRT_LIBS} cudart libnvjpeg ${GST_LIBS} nppc nppig nppicc nppial nppisu npps)
 set(ALL_INCLUDE_LIB ${OpenCV_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR} )
 
-file(GLOB_RECURSE SRCS ${PROJECT_SOURCE_DIR}/infrastructure/*.cpp
+file(GLOB_RECURSE SRCS
+        ${PROJECT_SOURCE_DIR}/infrastructure/*.cpp
         ${PROJECT_SOURCE_DIR}/videogst/*.cpp
         ${PROJECT_SOURCE_DIR}/include/*.h
         ${PROJECT_SOURCE_DIR}/include/common/*.h
@@ -145,11 +146,16 @@ target_include_directories(GstreamerLib PUBLIC  ${GST_LIBS})
 target_link_libraries(GstreamerLib PUBLIC stdc++fs ${GST_LIBS} ${OpenCV_LIBS} cudart)
 
 
+
+# ExtensionCharpStatic --------------------------------------------------------------------------------------------------------------
+add_library(ExtensionCharpStatic STATIC ${SRCS} )
+target_include_directories(ExtensionCharpStatic PUBLIC ${ALL_INCLUDE_LIB})
+target_link_libraries(ExtensionCharpStatic PUBLIC ${ALL_LIB} stdc++fs ${LibTrtStatic})
+
+
 # ExtensionCharp --------------------------------------------------------------------------------------------------------------
-#add_library(ExtensionCharp STATIC ${SRCS} )
 add_library(ExtensionCharp SHARED ${SRCS} )
 target_include_directories(ExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
-#target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs ${LibTrtStatic})
 target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs  )
 
 # TestRunProject --------------------------------------------------------------------------------------------------------------
@@ -165,7 +171,7 @@ target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs  )
 add_executable(TestExtensionCharp ${PROJECT_SOURCE_DIR}/tests/TestExtensionCharp.cpp
         tests/Helper.hpp)
 target_include_directories(TestExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
-target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharp  )
+target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharpStatic  )
 
 ## TestTRTEngine --------------------------------------------------------------------------------------------------------------
 add_executable(TestTRTEngine
@@ -177,7 +183,7 @@ target_link_libraries(TestTRTEngine PUBLIC TRTLayer GstreamerLib NvJpgEncoderlib
 add_executable(TestNppFunction
         ${PROJECT_SOURCE_DIR}/tests/NppFunctionTest.cpp
         ${PROJECT_SOURCE_DIR}/infrastructure/NppFunction.cpp)
-target_link_libraries(TestNppFunction PUBLIC ${ALL_LIB} ${OpenCV_LIBS} stdc++fs nppc nppig nppicc nppial nppisu)
+target_link_libraries(TestNppFunction PUBLIC ${ALL_LIB} ${OpenCV_LIBS} stdc++fs nppc nppig nppicc nppial nppisu npps)
 
 # TestGstreamerLib --------------------------------------------------------------------------------------------------------------
 #add_executable(TestGstDecoder  ${PROJECT_SOURCE_DIR}/tests/TestGstDecoder.cpp)

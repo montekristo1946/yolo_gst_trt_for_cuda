@@ -7,6 +7,7 @@
 #include <nppi_geometry_transforms.h>
 #include <nppi_arithmetic_and_logical_operations.h>
 #include <nppi_color_conversion.h>
+#include <npp.h>
 
 class NppFunction : public IDispose
 {
@@ -20,7 +21,7 @@ public:
     static FrameGpu<Npp8u>* RGBToGray( const  FrameGpu<Npp8u>* imsSrc);
     static FrameGpu<Npp32f>* AddWeighted( FrameGpu<Npp32f>* imgBackground, const FrameGpu<Npp8u>* imgSrc, float alpha = 0.04);
     static FrameGpu<Npp32f> *AbsDiff(const FrameGpu<Npp32f>* imgBackground, const FrameGpu<Npp32f>* imageDiff);
-
+    static FrameGpu<Npp32f>*  ConvertFrame8u32f(const FrameGpu<Npp8u>* imgSrc);
 };
 
 

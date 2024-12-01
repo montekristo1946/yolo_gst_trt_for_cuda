@@ -29,9 +29,9 @@ NvJpgEncoder::~NvJpgEncoder()
 
 }
 
-vector<unsigned char>* NvJpgEncoder::Encode(cuda::GpuMat& imageSrc)
+vector<unsigned char>* NvJpgEncoder::Encode(const FrameGpu<Npp8u>* imageSrc)
 {
-    if (imageSrc.empty() || imageSrc.channels() != 1)
+    if (!imageSrc || imageSrc->Channels() != 1)
         throw std::runtime_error("[NvJpgEncoder::Encode] Null reference exception()");
 
     if(_jpegExport)
@@ -41,14 +41,14 @@ vector<unsigned char>* NvJpgEncoder::Encode(cuda::GpuMat& imageSrc)
     }
 
     nvjpegImage_t nvImage;
-    auto width = imageSrc.cols;
-    auto height = imageSrc.rows;
+    auto width = imageSrc->Width();
+    auto height = imageSrc->Height();
     auto newChannel = 3;
-    auto step = imageSrc.step;
+    auto step = imageSrc->GetStep();
 
     for (int i = 0; i < newChannel; i++)
     {
-        nvImage.channel[i] = imageSrc.data;
+        nvImage.channel[i] = imageSrc->ImagePtr();
         nvImage.pitch[i] = step;
     }
 

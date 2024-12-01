@@ -13,7 +13,7 @@ GstBufferManager::GstBufferManager(BufferFrameGpu* bufferFrameGpu, cudaStream_t*
 }
 
 
-cuda::GpuMat* GstBufferManager::CreateImage(const NvBufSurfaceParams& nvBufSurfaceParams)
+FrameGpu<Npp8u>* GstBufferManager::CreateImage(const NvBufSurfaceParams& nvBufSurfaceParams)
 {
     auto width = nvBufSurfaceParams.width;
     auto height = nvBufSurfaceParams.height;
@@ -32,21 +32,22 @@ cuda::GpuMat* GstBufferManager::CreateImage(const NvBufSurfaceParams& nvBufSurfa
     const size_t rgbBufferSize = width * height * sizeof(uchar3) * 8; //TODO: почему цифра 8?
     void* converImage = NULL;
 
-    if (CUDA_FAILED(cudaMallocAsync(&converImage, rgbBufferSize,*_stream)))
-    {
-        throw std::runtime_error("[GstBufferManager::CreateImage] failed to allocate CUDA buffer of  bytes");
-    }
+    CUDA_FAILED(cudaMallocAsync(&converImage, rgbBufferSize,*_stream));
+    CUDA_FAILED(
+        _cudaYUV_NV12.CudaNV12ToRGB(nvBufSurfaceParams.dataPtr, static_cast<uchar3*>(converImage), width, height, pitch,*_stream));
 
-    if (CUDA_FAILED( _cudaYUV_NV12.CudaNV12ToRGB(nvBufSurfaceParams.dataPtr, (uchar3*)converImage, width, height, pitch,*_stream)))
-    {
-        throw std::runtime_error("[GstBufferManager::CreateImage] failed cudaYUV_NV12.CudaNV12ToRGB ");
-    }
+    auto channel = 3;
+    auto rgbFrame = new FrameGpu(static_cast<Npp8u*>(converImage), width, height, 1, channel);
+    auto imtGray = _nppFunctions->RGBToGray(rgbFrame);
 
-    auto imgSrc = cuda::GpuMat(height, width, CV_8UC3, converImage);
-    auto imtGray = new cuda::GpuMat();
-    cuda::cvtColor(imgSrc, *imtGray, COLOR_BGR2GRAY);
+    delete rgbFrame;
+    // CUDA_FAILED(cudaFree(converImage));
 
-    cudaFree(converImage);
+    // auto imgSrc = cuda::GpuMat(height, width, CV_8UC3, converImage);
+    // auto imtGray = new cuda::GpuMat();
+    // cuda::cvtColor(imgSrc, *imtGray, COLOR_BGR2GRAY);
+    //
+    // cudaFree(converImage);
     return imtGray;
 }
 
@@ -82,12 +83,12 @@ bool GstBufferManager::Enqueue(GstBuffer* gstBuffer, GstCaps* gstCaps)
 
     if (GST_BUFFER_DTS_IS_VALID(gstBuffer) || GST_BUFFER_PTS_IS_VALID(gstBuffer))
     {
-        timestamp = GST_BUFFER_DTS_OR_PTS(gstBuffer);
+        auto timestampTemp = GST_BUFFER_DTS_OR_PTS(gstBuffer);
+        timestamp  =  timestampTemp>0 ? timestampTemp : 1;
     }
 
-    auto image = CreateImage(infoData->surfaceList[0]);
-
-    auto frame = new FrameGpu(image, timestamp);
+    auto frame = CreateImage(infoData->surfaceList[0]);
+    frame->SetTimestamp(timestamp);
     _bufferFrameGpu->Enqueue(frame);
 
     gst_buffer_unmap(gstBuffer, &map);
@@ -99,6 +100,8 @@ bool GstBufferManager::Enqueue(GstBuffer* gstBuffer, GstCaps* gstCaps)
 GstBufferManager::~GstBufferManager()
 {
     _logger->info("[~GstBufferManager] Call");
+    if (_nppFunctions)
+        delete _nppFunctions;
 }
 
 void GstBufferManager::ShowFirstDebugMessage(GstCaps* gst_caps)

@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <fstream>
 #include <cstring>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "DtoToCharp.h"
 #include "TRTEngine.hpp"

@@ -13,6 +13,27 @@
 
 using namespace cv;
 
+FrameGpu<Npp32f>* IntiImgFloat(const Mat& mat)
+{
+    Npp32f* imagePtr = nullptr;
+    auto allSize = mat.cols * mat.rows;
+    CUDA_FAILED(cudaMalloc((void **)(&imagePtr), allSize*sizeof(Npp32f) ));
+    CUDA_FAILED(cudaMemcpy(imagePtr, mat.data, allSize*sizeof(Npp32f), cudaMemcpyHostToDevice));
+
+    FrameGpu<Npp32f>* imgSrc = new FrameGpu(imagePtr, mat.cols, mat.rows, 888, mat.channels());
+    return imgSrc;
+}
+
+FrameGpu<Npp8u>* IntiImgUnchanged(const Mat& mat)
+{
+    Npp8u* imageSrcPtr = nullptr;
+    auto allSizeSrc = mat.cols * mat.rows;
+    CUDA_FAILED(cudaMalloc((void **)(&imageSrcPtr), allSizeSrc*sizeof(Npp8u) ));
+    CUDA_FAILED(cudaMemcpy(imageSrcPtr, mat.data, allSizeSrc*sizeof(Npp8u), cudaMemcpyHostToDevice));
+    auto* imgSrc = new FrameGpu(imageSrcPtr, mat.cols, mat.rows, 777, mat.channels());
+    return imgSrc;
+}
+
 void TestResize(int iter = 100000, bool isShow = false)
 {
     std::cout << " --- TestResize Run  ---" << std::endl;
@@ -69,7 +90,7 @@ void TestConvertToGray(int iter = 100000, bool isShow = false)
     auto channel = 3;
     auto allSizeSrc = mat.cols * mat.rows * channel;
     uint64_t timestamp = 999;
-    unsigned char* imageSrcPtr = nullptr;
+    Npp8u* imageSrcPtr = nullptr;
 
     for (int i = 0; i < iter; i++)
     {
@@ -110,12 +131,7 @@ void TestAddWeighted(const Mat& matInput, FrameGpu<Npp32f>* frameBackground, Npp
     Mat imgSrcGray;
     cvtColor(matInput, imgSrcGray, COLOR_BGR2GRAY);
     auto channel = 1;
-
-    Npp8u* imageSrcPtr = nullptr;
-    auto allSizeSrc = imgSrcGray.cols * imgSrcGray.rows;
-    CUDA_FAILED(cudaMalloc((void **)(&imageSrcPtr), allSizeSrc*sizeof(Npp8u) ));
-    CUDA_FAILED(cudaMemcpy(imageSrcPtr, imgSrcGray.data, allSizeSrc*sizeof(Npp8u), cudaMemcpyHostToDevice));
-    auto* imgSrc = new FrameGpu(imageSrcPtr, imgSrcGray.cols, imgSrcGray.rows, 888, channel);
+    auto* imgSrc = IntiImgUnchanged(imgSrcGray);
 
     auto start = chrono::system_clock::now();
     frameBackground = nppFunction->AddWeighted(frameBackground, imgSrc);
@@ -172,16 +188,7 @@ void TestAddWeightedOnVideo(int inter)
     std::cout << " --- TestAddWeightedOnVideo End ok  ---" << std::endl;
 }
 
-FrameGpu<Npp32f>* IntiImgFloat(const Mat& mat)
-{
-    Npp32f* imagePtr = nullptr;
-    auto allSize = mat.cols * mat.rows;
-    CUDA_FAILED(cudaMalloc((void **)(&imagePtr), allSize*sizeof(Npp32f) ));
-    CUDA_FAILED(cudaMemcpy(imagePtr, mat.data, allSize*sizeof(Npp32f), cudaMemcpyHostToDevice));
 
-    FrameGpu<Npp32f>* imgSrc = new FrameGpu(imagePtr, mat.cols, mat.rows, 888, mat.channels());
-    return imgSrc;
-}
 
 void TestAbsDiff(int iter= 100000, bool isShow = false)
 {
@@ -194,15 +201,13 @@ void TestAbsDiff(int iter= 100000, bool isShow = false)
     auto width = matFonSrc.cols;
     auto height = matFonSrc.rows;
 
-    Mat matFonFloat;
-    matFonSrc.convertTo(matFonFloat, CV_32FC1);
-    Mat matStcFloat;
-    matStc.convertTo(matStcFloat, CV_32FC1);
-
     for (int i = 0; i < iter; i++)
     {
-        auto* imageFonPtr = IntiImgFloat(matFonFloat);
-        auto* imageStcPtr = IntiImgFloat(matStcFloat);
+        auto imgUnCharFon = IntiImgUnchanged(matFonSrc);
+        auto imageFonPtr =  nppFunction->ConvertFrame8u32f(imgUnCharFon);
+
+        auto imageUncharStc = IntiImgUnchanged(matStc);
+        auto imageStcPtr =  nppFunction->ConvertFrame8u32f(imageUncharStc);
 
         auto start = chrono::system_clock::now();
         auto resDiff = nppFunction->AbsDiff(imageFonPtr, imageStcPtr);
@@ -219,7 +224,8 @@ void TestAbsDiff(int iter= 100000, bool isShow = false)
             imshow("matStc", matStc);
             waitKey(1);
         }
-
+        delete imgUnCharFon;
+        delete imageUncharStc;
         delete imageFonPtr;
         delete imageStcPtr;
         delete resDiff;
@@ -239,9 +245,9 @@ int main(int argc, char* argv[])
     auto logPathFileString = "./Logs/NppFunctionTest.log";
     auto mainLogger = MainLogger(logPathFileString);
 
-    TestResize(10, true);
-    TestConvertToGray(10, true);
-    TestAbsDiff(10, true);
-    TestAddWeightedOnVideo(10);
+    // TestResize(10, true);
+    // TestConvertToGray(10, true);
+    TestAbsDiff(1000000, true);
+    // TestAddWeightedOnVideo(10);
     return 0;
 }

@@ -9,7 +9,7 @@
 
 FrameGpu<Npp8u>* NppFunction::ResizeGrayScale(const FrameGpu<Npp8u>* sourceImage, int newWidth, int newHeight)
 {
-    if (!sourceImage || newWidth <= 0 || newHeight <= 0 || sourceImage->Channel() != 1)
+    if (!sourceImage || newWidth <= 0 || newHeight <= 0 || sourceImage->Channels() != 1)
         throw std::invalid_argument("[NppFunction::ResizeGrayScale] Invalid input parameters");
 
     NppiSize srcSize = { sourceImage->Width(), sourceImage->Height() };
@@ -42,19 +42,21 @@ FrameGpu<Npp8u>* NppFunction::ResizeGrayScale(const FrameGpu<Npp8u>* sourceImage
         throw std::runtime_error(err);
     }
 
-    return new FrameGpu(resizedImage, newWidth, newHeight, sourceImage->Timestamp(), sourceImage->Channel());
+    return new FrameGpu(resizedImage, newWidth, newHeight, sourceImage->Timestamp(), sourceImage->Channels());
 }
 
 
 FrameGpu<Npp8u>* NppFunction::RGBToGray(const FrameGpu<Npp8u>* sourceImage)
 {
-    if (!sourceImage || sourceImage->Channel() != 3)
+    if (!sourceImage || sourceImage->Channels() != 3)
         throw std::invalid_argument("[NppFunction::RGBToGray] Invalid input parameters");
+
+    auto channel = 1;
 
     Npp8u* destinationImage = nullptr;
     const auto width = sourceImage->Width();
     const auto height = sourceImage->Height();
-    const auto sourceStep = sourceImage->Width() * sourceImage->Channel();
+    const auto sourceStep = sourceImage->Width() * sourceImage->Channels();
     const auto destinationStep = width;
 
     const auto destinationSize = width * height;
@@ -71,14 +73,14 @@ FrameGpu<Npp8u>* NppFunction::RGBToGray(const FrameGpu<Npp8u>* sourceImage)
     if (status != NPP_SUCCESS)
         throw std::runtime_error("[NppFunction::RGBToGray] nppiRGBToGray_8u_C3C1R failed");
 
-    return new FrameGpu(destinationImage, width, height, sourceImage->Timestamp(), 1);
+    return new FrameGpu(destinationImage, width, height, sourceImage->Timestamp(), channel);
 }
 
 
 
 FrameGpu<float>* NppFunction::AddWeighted(FrameGpu<Npp32f>* backgroundImg, const FrameGpu<Npp8u>* sourceImg, const float alpha)
 {
-    if (!backgroundImg || backgroundImg->Channel() != 1 || !sourceImg || sourceImg->Channel() != 1)
+    if (!backgroundImg || backgroundImg->Channels() != 1 || !sourceImg || sourceImg->Channels() != 1)
         throw std::invalid_argument("[NppFunction::AddWeighted] Invalid input parameters");
 
     NppiSize roiSize = {sourceImg->Width(), sourceImg->Height()};
@@ -103,7 +105,7 @@ FrameGpu<float>* NppFunction::AddWeighted(FrameGpu<Npp32f>* backgroundImg, const
 
 FrameGpu<Npp32f>* NppFunction::AbsDiff(const FrameGpu<Npp32f>* imgBackground, const FrameGpu<Npp32f>* imageDiff)
 {
-    if(!imgBackground ||  imgBackground->Channel() !=1 || !imageDiff ||  imageDiff->Channel() !=1)
+    if(!imgBackground ||  imgBackground->Channels() !=1 || !imageDiff ||  imageDiff->Channels() !=1)
         throw std::invalid_argument("[NppFunction::AbsDiff] fail input parameters");
 
     Npp32f* imagePtr = nullptr;
@@ -131,5 +133,31 @@ FrameGpu<Npp32f>* NppFunction::AbsDiff(const FrameGpu<Npp32f>* imgBackground, co
         imgBackground->Width(),
         imgBackground->Height(),
         imgBackground->Timestamp(),
-        imgBackground->Channel());
+        imgBackground->Channels());
+}
+
+FrameGpu<Npp32f>* NppFunction::ConvertFrame8u32f(const FrameGpu<Npp8u>* imgSrc)
+{
+    if (!imgSrc)
+        throw std::invalid_argument("[NppFunction::ConvertFrameGpuU8ToFloat] Invalid input parameters");
+
+    Npp32f* imagePtr = nullptr;
+    auto width = imgSrc->Width();
+    auto height = imgSrc->Height();
+    auto channel = imgSrc->Channels();
+    auto allSize = width*height*channel;
+    CUDA_FAILED(cudaMalloc((void **)(&imagePtr), allSize*sizeof(Npp32f) ));
+
+    auto status =nppsConvert_8u32f(
+        imgSrc->ImagePtr(),
+       imagePtr,
+       allSize);
+
+    if (status != NPP_SUCCESS)
+    {
+        auto statusName = magic_enum::enum_name(status);
+        throw std::runtime_error("[NppFunction::ConvertFrameGpuU8ToFloat] nppsConvert_8u32f failed: " + std::string(statusName));
+    }
+
+    return new FrameGpu<Npp32f>(imagePtr, width, height, imgSrc->Timestamp(), channel);
 }
