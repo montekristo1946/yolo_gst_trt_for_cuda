@@ -12,3 +12,4 @@ bin/
 *.engine
 *.onnx
 *.onnx.hash
+*.so
