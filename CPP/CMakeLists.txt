@@ -36,7 +36,7 @@ include_directories(/usr/lib/x86_64-linux-gnu/glib-2.0/include)
 include_directories(/usr/include/gstreamer-1.0/)
 include_directories(/usr/include/gstreamer-1.0/gst/app)
 
-set(OpenCV_INCLUDE_DIRS "/usr/local/include/opencv4" )
+
 set(TENSORRT_INCLUDE_DIR "/usr/include/x86_64-linux-gnu" )
 set(TRT_LIB_DIR "/usr/lib/x86_64-linux-gnu")
 set(CUDA_LIB_DIR "/usr/local/cuda/lib64" )
@@ -90,7 +90,7 @@ find_library_create_target(nppial "nppial" SHARED ${CUDA_LIB_DIR})
 find_library_create_target(nppisu "nppisu" SHARED ${CUDA_LIB_DIR})
 find_library_create_target(npps "npps" SHARED ${CUDA_LIB_DIR})
 
-set(ALL_LIB ${OpenCV_LIBS} ${TensorRT_LIBS} cudart libnvjpeg ${GST_LIBS} nppc nppig nppicc nppial nppisu npps)
+set(ALL_LIB  ${TensorRT_LIBS} cudart libnvjpeg ${GST_LIBS} nppc nppig nppicc nppial nppisu npps)
 set(ALL_INCLUDE_LIB ${OpenCV_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR} )
 
 file(GLOB_RECURSE SRCS
@@ -139,11 +139,10 @@ add_library(GstreamerLib STATIC
         ${PROJECT_SOURCE_DIR}/include/common/magic_enum.hpp
         ${PROJECT_SOURCE_DIR}/include/EnginePipeline.h
         ${PROJECT_SOURCE_DIR}/include/SettingPipeline.h
-        ${PROJECT_SOURCE_DIR}/infrastructure/MatConverter.cu
         ${PROJECT_SOURCE_DIR}/infrastructure/EnginePipeline.cpp
 )
 target_include_directories(GstreamerLib PUBLIC  ${GST_LIBS})
-target_link_libraries(GstreamerLib PUBLIC stdc++fs ${GST_LIBS} ${OpenCV_LIBS} cudart)
+target_link_libraries(GstreamerLib PUBLIC stdc++fs ${GST_LIBS}  cudart)
 
 
 
@@ -171,7 +170,7 @@ target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs  )
 add_executable(TestExtensionCharp ${PROJECT_SOURCE_DIR}/tests/TestExtensionCharp.cpp
         tests/Helper.hpp)
 target_include_directories(TestExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
-target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharpStatic  )
+target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharpStatic  ${OpenCV_LIBS} )
 
 ## TestTRTEngine --------------------------------------------------------------------------------------------------------------
 add_executable(TestTRTEngine
@@ -204,15 +203,6 @@ target_link_libraries(TestNppFunction PUBLIC ${ALL_LIB} ${OpenCV_LIBS} stdc++fs 
 #target_compile_features(TestYoloGPU PUBLIC cxx_std_23)
 #set_target_properties( TestYoloGPU PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
-#TestMatConverter --------------------------------------------------------------------------------------------------------------
-#add_compile_options(-G)
-#add_executable(TestMatConverter
-#        ${PROJECT_SOURCE_DIR}/tests/TestMatConverter.cu
-#        ${PROJECT_SOURCE_DIR}/infrastructure/MatConverter.cu)
-#target_include_directories(TestMatConverter PUBLIC ${ALL_INCLUDE_LIB})
-#target_link_libraries(TestMatConverter PUBLIC ${ALL_LIB} stdc++fs)
-#target_compile_features(TestMatConverter PUBLIC cxx_std_23)
-#set_target_properties( TestMatConverter PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 # TestGPUMat --------------------------------------------------------------------------------------------------------------
 #add_executable(TestGPUMat ${PROJECT_SOURCE_DIR}/tests/TestGPUMat.cpp)

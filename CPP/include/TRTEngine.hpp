@@ -13,7 +13,6 @@
 #include "IDispose.h"
 #include "YoloToolsGPU.h"
 #include <filesystem>
-#include <opencv2/core/mat.hpp>
 #include "TRTEngineConfig.hpp"
 
 using namespace nvinfer1;

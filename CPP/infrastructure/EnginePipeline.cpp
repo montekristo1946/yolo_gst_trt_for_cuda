@@ -1,6 +1,6 @@
 #include "EnginePipeline.h"
 
-#include <opencv2/highgui.hpp>
+
 
 
 EnginePipeline::EnginePipeline(TRTEngine* trtEngine, BufferFrameGpu* bufferFrameGpu,
@@ -16,7 +16,6 @@ EnginePipeline::EnginePipeline(TRTEngine* trtEngine, BufferFrameGpu* bufferFrame
     _gstDecoder = gstDecoder;
     _streem = streem;
     _settingPipeline = settingPipeline;
-    _matConverter = new MatConverter();
     _encoder = encoder;
 
     auto channel = 1;
@@ -145,9 +144,6 @@ EnginePipeline::~EnginePipeline()
 {
     FREE_FRAME_GPU(_imageBackground);
     FREE_FRAME_GPU(_currentImage);
-
-    if (_matConverter)
-        delete _matConverter;
 
     if (_settingPipeline)
         delete _settingPipeline;

@@ -5,7 +5,6 @@
 #include <GstBufferManager.h>
 #include <GstDecoder.h>
 #include <IDispose.h>
-#include <MatConverter.h>
 #include <TRTEngine.hpp>
 
 
@@ -42,25 +41,18 @@ private:
     void UpdateBackground();
     void LoadImgToTrt();
 
-    MatConverter * _matConverter = nullptr;
-
     TRTEngine *_trtEngine = nullptr;
     BufferFrameGpu *_bufferFrameGpu = nullptr;
     GstBufferManager *_gstBufferManager = nullptr;
     GstDecoder *_gstDecoder = nullptr;
     cudaStream_t* _streem = 0;
     SettingPipeline* _settingPipeline= nullptr;
-
     std::vector<uchar> _imagesExport ;
-
     FrameGpu<Npp32f> *_imageBackground = nullptr;
-    // FrameGpu<Npp32f> *_difImage = nullptr;
     FrameGpu<Npp8u>* _currentImage = nullptr;
     uint64_t  _currentTimeStamp = 0;
-
     NvJpgEncoder* _encoder  = nullptr;
     shared_ptr<logger> _logger = get("MainLogger");
-
     NppFunction * _nppFunctions = new NppFunction();
 };
 #endif //THERMALPIPLINE_H

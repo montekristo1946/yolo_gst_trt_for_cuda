@@ -135,10 +135,10 @@ void Test_memory_leak(const char* model_output)
 int main(int argc, char *argv[]) {
     auto modelInput = "../weight/model_001.onnx";
     auto modelOutput = "../weight/model_001.engine";
-    // Test_ConverterNetWeight(modelInput, modelOutput);
 
+    Test_ConverterNetWeight(modelInput, modelOutput);
     // Test_init_pipeline( modelOutput);
-    Test_memory_leak( modelOutput);
+    // Test_memory_leak( modelOutput);
     return 0;
 }
 

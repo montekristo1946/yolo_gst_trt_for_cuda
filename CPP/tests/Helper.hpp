@@ -13,6 +13,7 @@
 #include "TRTEngine.hpp"
 
 using namespace std;
+using namespace cv;
 
 const int ImageWidth = 640;
 const int ImageHeight = 640;

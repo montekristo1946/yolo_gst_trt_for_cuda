@@ -2,13 +2,10 @@
 #define TENSORRTTOOLS_COMMON_H
 #include <vector>
 #include <iostream>
-#include <opencv2/core/cuda.hpp>
 #include "cuda_runtime_api.h"
 #include "FrameGpu.h"
 
-
 using namespace std;
-using namespace cv;
 
 struct LayerSize
 {

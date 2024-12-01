@@ -31,14 +31,14 @@ using namespace std;
 
 void OperationalSavingLogs()
 {
-    shared_ptr<spdlog::logger> _loger = spdlog::get("MainLogger");
+    shared_ptr<logger> _loger = spdlog::get("MainLogger");
     if (_loger != nullptr)
         _loger->flush();
 }
 
 void SlowloggingError(string message)
 {
-    shared_ptr<spdlog::logger> _loger = spdlog::get("MainLogger");
+    shared_ptr<logger> _loger = spdlog::get("MainLogger");
     if (_loger != nullptr)
     {
         _loger->error(message);
@@ -54,12 +54,12 @@ extern "C" MYLIB_EXPORT void InitLogger(const char* logPathFile)
 {
     if (logPathFile == nullptr || logPathFile == NULL)
     {
-        spdlog::error("[InitLogger] Null input parameters");
+        error("[InitLogger] Null input parameters");
         return;
     }
 
-    spdlog::info("[InitLogger] InitLogger; yolo_gst_for_cuda  Version libExtensionCHarp.so:  0.1");
-    spdlog::info("[InitLogger] LogPath: {}", logPathFile);
+    info("[InitLogger] InitLogger; yolo_gst_for_cuda  Version libExtensionCHarp.so:  0.1");
+    info("[InitLogger] LogPath: {}", logPathFile);
 
     auto logPathFileString = string(logPathFile);
     auto mainLogger = MainLogger(logPathFileString);
@@ -77,7 +77,7 @@ extern "C" MYLIB_EXPORT bool ConverterNetworkWeight(const char* pathOnnxModelCha
     {
         if (pathOnnxModelChar == nullptr || exportPathModelChar == nullptr || config == nullptr)
         {
-            spdlog::error("[ConverterNetworkWeight] Null input parameters");
+            error("[ConverterNetworkWeight] Null input parameters");
             return false;
         }
         auto shape = *config;
@@ -125,10 +125,10 @@ extern "C" MYLIB_EXPORT CudaStream* CreateCudaStream()
 
 extern "C" MYLIB_EXPORT TRTEngine* CreateTRTEngine(const TRTEngineConfig* config, CudaStream* cudaStream)
 {
-    spdlog::info("[CreateTRTEngine] Init TRTEngine Version 1.0.0");
+    info("[CreateTRTEngine] Init TRTEngine Version 1.0.0");
     if (!config)
     {
-        spdlog::error("[CreateTRTEngine] Null input parameters");
+        error("[CreateTRTEngine] Null input parameters");
         return nullptr;
     }
     try
@@ -168,7 +168,7 @@ extern "C" MYLIB_EXPORT TRTEngine* CreateTRTEngine(const TRTEngineConfig* config
 
 extern "C" MYLIB_EXPORT BufferFrameGpu* CreateBufferFrameGpu()
 {
-    spdlog::info("[CreateBufferFrameGpu] Init BufferFrameGpu Version 1.0.0");
+    info("[CreateBufferFrameGpu] Init BufferFrameGpu Version 1.0.0");
     try
     {
         unsigned sizeBuffer = 5;
@@ -190,7 +190,7 @@ extern "C" MYLIB_EXPORT BufferFrameGpu* CreateBufferFrameGpu()
 
 extern "C" MYLIB_EXPORT GstBufferManager* CreateGstBufferManager(BufferFrameGpu* bufferFrameGpu, CudaStream* cudaStream)
 {
-    spdlog::info("[CreateGstBufferManager] Init GstBufferManager Version 1.0.0");
+    info("[CreateGstBufferManager] Init GstBufferManager Version 1.0.0");
     try
     {
         auto bufferManager = new GstBufferManager(bufferFrameGpu, cudaStream->GetStream());
@@ -211,7 +211,7 @@ extern "C" MYLIB_EXPORT GstBufferManager* CreateGstBufferManager(BufferFrameGpu*
 
 extern "C" MYLIB_EXPORT GstDecoder* CreateGstDecoder(GstBufferManager* bufferManager)
 {
-    spdlog::info("[CreateGstDecoder] Init GstDecoder Version 1.0.0");
+    info("[CreateGstDecoder] Init GstDecoder Version 1.0.0");
     try
     {
         auto gstDecoder = new GstDecoder(bufferManager);
@@ -232,7 +232,7 @@ extern "C" MYLIB_EXPORT GstDecoder* CreateGstDecoder(GstBufferManager* bufferMan
 
 extern "C" MYLIB_EXPORT NvJpgEncoder* CreateNvJpgEncoder(CudaStream* cudaStream)
 {
-    spdlog::info("[CreateNvJpgEncoder] Init NvJpgEncoder Version 1.0.0");
+    info("[CreateNvJpgEncoder] Init NvJpgEncoder Version 1.0.0");
     try
     {
         auto encoder = new NvJpgEncoder(cudaStream->GetStream());
@@ -260,9 +260,9 @@ extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine
                                                             NvJpgEncoder* encoder,
                                                             const char* connectString)
 {
-    spdlog::info("[CreateEnginPipeline] Init CreateEnginPipeline Version 1.0.0");
+    info("[CreateEnginPipeline] Init CreateEnginPipeline Version 1.0.0");
     string logPathFileString = string(connectString);
-    spdlog::info("[CreateEnginPipeline] SettingPipeline: WidthImgMl={}, HeightImgMl={}, CountImgToBackground={}",
+    info("[CreateEnginPipeline] SettingPipeline: WidthImgMl={}, HeightImgMl={}, CountImgToBackground={}",
                  settingPipeline->WidthImgMl,
                  settingPipeline->HeightImgMl,
                  settingPipeline->CountImgToBackground);
