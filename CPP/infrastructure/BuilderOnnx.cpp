@@ -55,7 +55,7 @@ bool BuilderOnnx::ApiToFileModel(string &modelInputPath, string &modelOutputPath
 
     config->setMemoryPoolLimit(MemoryPoolType::kWORKSPACE, 128 * (1 << 20));// 128 MiB
 
-    if (setHalfModel && builder->platformHasFastFp16()) {
+    if (setHalfModel) {
         config->setFlag(BuilderFlag::kFP16);
     }
 

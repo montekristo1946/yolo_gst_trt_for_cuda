@@ -5,11 +5,8 @@
 #include <GstBufferManager.h>
 #include <GstDecoder.h>
 #include <IDispose.h>
-#include <MatConverter.h>
 #include <TRTEngine.hpp>
 
-#include <opencv2/cudaarithm.hpp>
-#include <opencv2/cudawarping.hpp>
 
 #include "NvJpgEncoder.h"
 #include "SettingPipeline.h"
@@ -40,13 +37,9 @@ public:
     uint64_t GetCurrentTimeStamp() const { return _currentTimeStamp; }
 
 private:
-    void UpdateCurrentImg(cuda::GpuMat* gpu_mat);
+    void UpdateCurrentImg(FrameGpu<Npp8u>* frame);
     void UpdateBackground();
-    void UpdateDiffImg();
-    cuda::GpuMat* ResizeImages(cuda::GpuMat* imageSrc);
     void LoadImgToTrt();
-
-    MatConverter * _matConverter = nullptr;
 
     TRTEngine *_trtEngine = nullptr;
     BufferFrameGpu *_bufferFrameGpu = nullptr;
@@ -54,15 +47,12 @@ private:
     GstDecoder *_gstDecoder = nullptr;
     cudaStream_t* _streem = 0;
     SettingPipeline* _settingPipeline= nullptr;
-
     std::vector<uchar> _imagesExport ;
-
-    cuda::GpuMat *_imageBackground = nullptr;
-    cuda::GpuMat *_difImage = nullptr;
-    cuda::GpuMat * _currentImage = nullptr;
+    FrameGpu<Npp32f> *_imageBackground = nullptr;
+    FrameGpu<Npp8u>* _currentImage = nullptr;
     uint64_t  _currentTimeStamp = 0;
-
     NvJpgEncoder* _encoder  = nullptr;
     shared_ptr<logger> _logger = get("MainLogger");
+    NppFunction * _nppFunctions = new NppFunction();
 };
 #endif //THERMALPIPLINE_H

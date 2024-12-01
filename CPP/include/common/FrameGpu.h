@@ -1,43 +1,84 @@
 #ifndef FRAMEGPU_H
 #define FRAMEGPU_H
 
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/core/cuda.hpp>
+#include "CudaUtility.h"
 
-using namespace cv;
 
+template <typename T>
 class FrameGpu
 {
 public:
     FrameGpu() = default;
 
-    FrameGpu(cuda::GpuMat* images, const uint64_t timestamp)
+    FrameGpu(T* image, const int width,const int height,const uint64_t timestamp, const int channel)
     {
-        _images = images;
+        if(!image || width <= 0 || height <= 0 || timestamp <= 0 || channel <= 0)
+            throw std::runtime_error("[FrameGpu::Ctr char, int, int, uint64_t, int] Fail input parameters ptr:" +
+            std::to_string(!image != false) +
+            " width:" +  std::to_string(width) +
+            " height:"  + std::to_string(height) +
+            " timestamp:" + std::to_string(timestamp) +
+            " channel:" + std::to_string(channel));
+
+        _images = image;
+        _width = width;
+        _height = height;
         _timestamp = timestamp;
+        _channels = channel;
+    }
+
+    static FrameGpu* CreateNew( const int width, const int height,  const int channel)
+    {
+        T* destinationImage = nullptr;
+        const auto destinationSize = width * height*channel;
+        CUDA_FAILED(cudaMalloc(reinterpret_cast<void**>(&destinationImage), destinationSize*sizeof(T)));
+
+        return new FrameGpu(destinationImage, width, height, channel);
     }
 
 
     ~FrameGpu()
     {
-        if (_images == nullptr)
-            return;
-
-        if ( _images->data != nullptr)
+        if ( _images)
         {
-            cudaFree(_images->data);
+            CUDA_FAILED(cudaFree(_images));
         }
-        delete _images;
-        _images = nullptr;
+
+    }
+
+    int GetStep() const { return _width * sizeof(T); }
+
+    uint64_t Timestamp() const { return _timestamp; }
+    int Width() const { return _width; }
+    int Height() const { return _height; }
+    int Channels() const { return _channels; }
+    T* ImagePtr()  const { return _images; }
+
+    unsigned int GetFulSize() const { return _width * _height * _channels; }
+    void SetTimestamp(uint64_t timestamp)
+    {
+        _timestamp = timestamp;
     };
 
-    cuda::GpuMat* GetImages() const { return _images; }
-    uint64_t GetTimestamp() const { return _timestamp; }
-
 private:
-    cuda::GpuMat* _images;
+    T * _images = nullptr;
     uint64_t _timestamp = 0;
+    int _width = -1;
+    int _height = -1;
+    int _channels = -1;
+
+    FrameGpu(T* image, const int width,const int height ,const int channel)
+    {
+        if(!image || width <= 0 || height <= 0 || channel <= 0)
+            throw std::runtime_error("[FrameGpu::Ctr char, int, int, uint64_t, int] Fail input parameters");
+
+        _images = image;
+        _width = width;
+        _height = height;
+        _timestamp = 0;
+        _channels = channel;
+    }
+
 };
 
 #endif //FRAMEGPU_H

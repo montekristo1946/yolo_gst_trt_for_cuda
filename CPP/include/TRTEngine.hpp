@@ -13,7 +13,6 @@
 #include "IDispose.h"
 #include "YoloToolsGPU.h"
 #include <filesystem>
-#include <opencv2/core/mat.hpp>
 #include "TRTEngineConfig.hpp"
 
 using namespace nvinfer1;
@@ -21,10 +20,11 @@ using namespace nvinfer1;
 class TRTEngine : public IDispose {
 public:
     TRTEngine( cudaStream_t *stream) {
-        _logger->info("[TRTEngine::Ctr]  Init  TRTEngine ok");
+
         if (!stream)
             throw std::runtime_error("[TRTEngine::Ctr] Null reference exception");
         _stream = stream;
+        _logger->info("[TRTEngine::Ctr]  Init  TRTEngine ok");
     }
 
     bool InitTRTEngine(const string engineName,
@@ -49,10 +49,11 @@ public:
     bool DoInferenceNMSAsync(vector<Detection>& outPutRectangles);
 
     vector<void *> _buffers; //спрятать этих ребят в приват
-    cudaStream_t *_stream;
-private:
-    bool Dispose();
 
+private:
+
+    bool Dispose();
+    cudaStream_t *_stream;
     size_t GetSizeByDim(const vector<int32_t> &dims);
 
 

@@ -6,11 +6,14 @@
 #include <iomanip>
 #include <fstream>
 #include <cstring>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "DtoToCharp.h"
 #include "TRTEngine.hpp"
 
 using namespace std;
+using namespace cv;
 
 const int ImageWidth = 640;
 const int ImageHeight = 640;

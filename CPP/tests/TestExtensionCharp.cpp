@@ -67,7 +67,7 @@ void Test_init_pipeline(const char* model_output, bool isShow=true)
     auto pipeline =  CreateEnginPipeline(trtEngine, bufferFrameGpu, bufferManager, gstDecoder,cudaStream,settingPipeline,encoder, connectString);
 
     auto maxCountDetectRectangle = 150;
-    auto countImg = 1000;
+    auto countImg = 10;
     while (countImg > 0)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -135,9 +135,9 @@ void Test_memory_leak(const char* model_output)
 int main(int argc, char *argv[]) {
     auto modelInput = "../weight/model_001.onnx";
     auto modelOutput = "../weight/model_001.engine";
-    // Test_ConverterNetWeight(modelInput, modelOutput);
 
-    Test_init_pipeline( modelOutput);
+    Test_ConverterNetWeight(modelInput, modelOutput);
+    // Test_init_pipeline( modelOutput);
     // Test_memory_leak( modelOutput);
     return 0;
 }

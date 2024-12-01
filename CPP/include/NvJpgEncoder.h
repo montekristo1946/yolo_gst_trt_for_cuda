@@ -5,18 +5,18 @@
 #ifndef NVJPGENCODER_H
 #define NVJPGENCODER_H
 #include <IDispose.h>
+#include <nppdefs.h>
 #include <nvjpeg.h>
-#include <opencv2/cudaarithm.hpp>
-#include <opencv2/cudawarping.hpp>
 
-using namespace cv;
+#include "FrameGpu.h"
+
 using namespace std;
 
 class NvJpgEncoder: public IDispose {
 public:
     NvJpgEncoder(cudaStream_t* streem);
     ~NvJpgEncoder();
-    vector<unsigned char>* Encode(cuda::GpuMat &imageSrc);
+    vector<unsigned char>* Encode(const FrameGpu<Npp8u>* imageSrc);
 
 private:
     void Init();

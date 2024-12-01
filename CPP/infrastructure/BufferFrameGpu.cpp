@@ -1,7 +1,7 @@
 
 #include "BufferFrameGpu.h"
 
-#include <spdlog/spdlog.h>
+
 
 
 // Constructor for FrameGpu class
@@ -36,17 +36,17 @@ BufferFrameGpu::~BufferFrameGpu()
  * @return true If the frame was successfully enqueued.
  * @return false If an exception occurred during enqueuing.
  */
-bool BufferFrameGpu::Enqueue(FrameGpu* frame)
+bool BufferFrameGpu::Enqueue(FrameGpu<Npp8u>* frame)
 {
    unique_lock lock(_mtx); // Acquire lock for thread safety
     try
     {
         while (_queueFrame.size() >= _sizeBuffer)
         {
-            spdlog::warn("[BufferFrameGpu::Enqueue] skip Frame");
+            // warn("[BufferFrameGpu::Enqueue] skip Frame");
             auto *frameTmp = _queueFrame.front();
             _queueFrame.pop();
-            std::unique_ptr<FrameGpu> frameUn(frameTmp);
+            std::unique_ptr<FrameGpu<Npp8u>> frameUn(frameTmp);
             // delete frameTmp;
         }
 
@@ -75,7 +75,7 @@ bool BufferFrameGpu::Enqueue(FrameGpu* frame)
  * @return true If a frame was successfully dequeued.
  * @return false If an exception occurred during dequeuing or the queue is empty.
  */
-bool BufferFrameGpu::Dequeue(FrameGpu** frame)
+bool BufferFrameGpu::Dequeue(FrameGpu<Npp8u>** frame)
 {
     unique_lock lock(_mtx);
     try
