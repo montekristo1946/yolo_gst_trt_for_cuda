@@ -24,11 +24,14 @@ public:
 
     ~GstDecoder();
 
-    bool InitPipeline(string basicString);
 
-    bool Open();
+    bool StartPipeline( string connectCamera );
 
 protected:
+
+    bool InitPipeline(string basicString);
+    bool Open();
+
     GstElement* _pipeline;
     GstBus* _bus;
     _GstAppSink* _appSink;
@@ -43,7 +46,7 @@ protected:
 
     bool _isEOS;
     bool _isStreaming;
-    GstBufferManager* bufferManager;
+    GstBufferManager* _bufferManager;
 
     void CheckMsgBus();
 

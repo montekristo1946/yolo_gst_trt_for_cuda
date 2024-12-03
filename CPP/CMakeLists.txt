@@ -128,6 +128,7 @@ target_link_libraries(NvJpgEncoderlib PUBLIC ${ALL_LIB} stdc++fs)
 
 #GstreamerLib --------------------------------------------------------------------------------------------------------------
 add_library(GstreamerLib STATIC
+        ${PROJECT_SOURCE_DIR}/include/Concurrentqueue.h
         ${PROJECT_SOURCE_DIR}/videogst/GstUtility.cpp
         ${PROJECT_SOURCE_DIR}/videogst/GstDecoder.cpp
         ${PROJECT_SOURCE_DIR}/videogst/GstBufferManager.cpp
@@ -140,6 +141,7 @@ add_library(GstreamerLib STATIC
         ${PROJECT_SOURCE_DIR}/include/EnginePipeline.h
         ${PROJECT_SOURCE_DIR}/include/SettingPipeline.h
         ${PROJECT_SOURCE_DIR}/infrastructure/EnginePipeline.cpp
+
 )
 target_include_directories(GstreamerLib PUBLIC  ${GST_LIBS})
 target_link_libraries(GstreamerLib PUBLIC stdc++fs ${GST_LIBS}  cudart)
@@ -153,7 +155,7 @@ target_link_libraries(ExtensionCharpStatic PUBLIC ${ALL_LIB} stdc++fs ${LibTrtSt
 
 
 # ExtensionCharp --------------------------------------------------------------------------------------------------------------
-add_library(ExtensionCharp SHARED ${SRCS} )
+add_library(ExtensionCharp SHARED ${SRCS})
 target_include_directories(ExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
 target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs  )
 

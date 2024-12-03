@@ -32,8 +32,8 @@ public:
         T* destinationImage = nullptr;
         const auto destinationSize = width * height*channel;
         CUDA_FAILED(cudaMalloc(reinterpret_cast<void**>(&destinationImage), destinationSize*sizeof(T)));
-
-        return new FrameGpu(destinationImage, width, height, channel);
+        uint64_t timestamp = 1;
+        return new FrameGpu(destinationImage, width, height, timestamp,channel);
     }
 
 

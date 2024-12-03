@@ -46,12 +46,9 @@ internal static class  PipelinePInvoke
     internal static extern IntPtr CreateEnginPipeline(
         IntPtr trtEngine,
         IntPtr bufferFrameGpu,
-        IntPtr gstBufferManager,
-        IntPtr gstDecoder,
         IntPtr cudaStream,
         ref SettingPipeline configPipeline,
-        IntPtr encoder,
-        StringBuilder connetctionString);
+        IntPtr encoder );
 
     [SuppressUnmanagedCodeSecurity]
     [DllImport(_patchDll, EntryPoint = "DoInferencePipeline", CallingConvention = CallingConvention.Cdecl)]
@@ -67,7 +64,7 @@ internal static class  PipelinePInvoke
   
     [SuppressUnmanagedCodeSecurity]
     [DllImport(_patchDll, EntryPoint = "GetCurrenImage", CallingConvention = CallingConvention.Cdecl)]
-    internal static extern bool GetCurrenImage(IntPtr _pipeline, ref ImageFrame imageFrame);
+    internal static extern bool GetCurrenImage(IntPtr pipeline, ref ImageFrame imageFrame);
 
     [SuppressUnmanagedCodeSecurity]
     [DllImport(_patchDll, EntryPoint = "ConverterNetworkWeight", CallingConvention = CallingConvention.Cdecl)]
@@ -78,4 +75,9 @@ internal static class  PipelinePInvoke
         int idGpu,
         bool setHalfModel = true
     );
+    
+    [SuppressUnmanagedCodeSecurity]
+    [DllImport(_patchDll, EntryPoint = "StartPipelineGst", CallingConvention = CallingConvention.Cdecl)]
+    internal static extern bool StartPipelineGst(IntPtr gstDecoder, StringBuilder connectionOnCameraPipliene);
+    
 }

@@ -3,7 +3,6 @@
 #define THERMALPIPLINE_H
 #include <BufferFrameGpu.h>
 #include <GstBufferManager.h>
-#include <GstDecoder.h>
 #include <IDispose.h>
 #include <TRTEngine.hpp>
 
@@ -19,32 +18,25 @@ public:
     EnginePipeline(
         TRTEngine *trtEngine,
         BufferFrameGpu *bufferFrameGpu,
-        GstBufferManager *gstBufferManager,
-        GstDecoder *gstDecoder,
         cudaStream_t* streem,
         SettingPipeline* settingPipeline,
         NvJpgEncoder* encoder);
 
-
-    bool StartPipeline( string connectCamera );
-
-
-    bool ConverterDetection(vector<Detection>& vector);
-    void UpdateCurrentTimeStamp(uint64_t &uint64);
     bool GetResultImages(vector<Detection>& resultNms, uint64_t &timeStamp);
     ~EnginePipeline();
     std::vector<unsigned char>* GetFrame();
     uint64_t GetCurrentTimeStamp() const { return _currentTimeStamp; }
 
 private:
+    bool ConverterDetection(vector<Detection>& vector);
+    void UpdateCurrentTimeStamp(uint64_t &uint64);
     void UpdateCurrentImg(FrameGpu<Npp8u>* frame);
     void UpdateBackground();
     void LoadImgToTrt();
 
     TRTEngine *_trtEngine = nullptr;
     BufferFrameGpu *_bufferFrameGpu = nullptr;
-    GstBufferManager *_gstBufferManager = nullptr;
-    GstDecoder *_gstDecoder = nullptr;
+
     cudaStream_t* _streem = 0;
     SettingPipeline* _settingPipeline= nullptr;
     std::vector<uchar> _imagesExport ;
@@ -54,5 +46,6 @@ private:
     NvJpgEncoder* _encoder  = nullptr;
     shared_ptr<logger> _logger = get("MainLogger");
     NppFunction * _nppFunctions = new NppFunction();
+
 };
 #endif //THERMALPIPLINE_H

@@ -9,10 +9,17 @@
 
     <ItemGroup>
       <Folder Include="LibsCPP\" />
+      <Folder Include="weight\" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Serilog" Version="4.1.1-dev-02320" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="weight\model_001.engine">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

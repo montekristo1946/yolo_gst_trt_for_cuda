@@ -58,7 +58,7 @@ extern "C" MYLIB_EXPORT void InitLogger(const char* logPathFile)
         return;
     }
 
-    info("[InitLogger] InitLogger; yolo_gst_for_cuda  Version libExtensionCHarp.so:  0.1");
+    info("[InitLogger] InitLogger; yolo_gst_for_cuda  Version libExtensionCHarp.so:  0.2");
     info("[InitLogger] LogPath: {}", logPathFile);
 
     auto logPathFileString = string(logPathFile);
@@ -253,19 +253,21 @@ extern "C" MYLIB_EXPORT NvJpgEncoder* CreateNvJpgEncoder(CudaStream* cudaStream)
 
 extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine,
                                                             BufferFrameGpu* bufferFrameGpu,
-                                                            GstBufferManager* gstBufferManager,
-                                                            GstDecoder* gstDecoder,
                                                             CudaStream* cudaStream,
                                                             SettingPipeline* settingPipeline,
-                                                            NvJpgEncoder* encoder,
-                                                            const char* connectString)
+                                                            NvJpgEncoder* encoder)
 {
+    if(!trtEngine || !bufferFrameGpu || !cudaStream || !settingPipeline || !encoder)
+    {
+        error("[CreateEnginPipeline] Null reference exception");
+        return nullptr;
+    }
+
     info("[CreateEnginPipeline] Init CreateEnginPipeline Version 1.0.0");
-    string logPathFileString = string(connectString);
     info("[CreateEnginPipeline] SettingPipeline: WidthImgMl={}, HeightImgMl={}, CountImgToBackground={}",
-                 settingPipeline->WidthImgMl,
-                 settingPipeline->HeightImgMl,
-                 settingPipeline->CountImgToBackground);
+         settingPipeline->WidthImgMl,
+         settingPipeline->HeightImgMl,
+         settingPipeline->CountImgToBackground);
 
     try
     {
@@ -274,15 +276,10 @@ extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine
             settingPipelineLoc->HeightImgMl = settingPipeline->HeightImgMl,
             settingPipelineLoc->CountImgToBackground = settingPipeline->CountImgToBackground;
 
-
         auto pipeline = new EnginePipeline(trtEngine,
                                            bufferFrameGpu,
-                                           gstBufferManager,
-                                           gstDecoder,
                                            cudaStream->GetStream(),
                                            settingPipelineLoc, encoder);
-
-        pipeline->StartPipeline(connectString);
 
         OperationalSavingLogs();
         return pipeline;
@@ -300,11 +297,38 @@ extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine
 }
 
 
+
+extern "C" MYLIB_EXPORT bool StartPipelineGst(GstDecoder* gstDecoder, const char* connectString)
+{
+    if (!gstDecoder)
+    {
+        error("[CreateEnginPipeline] GstDecoder is null");
+        return false;
+    }
+
+    try
+    {
+        auto res = gstDecoder->StartPipeline(connectString);
+        return res;
+    }
+    catch (std::exception& e)
+    {
+        SlowloggingError("[CreateThermalPipeline]  " + std::string(e.what()));
+    }
+    catch (...)
+    {
+        SlowloggingError("[CreateThermalPipeline] Unknown exception!");
+    }
+
+    return false;
+}
+
+
 extern "C" MYLIB_EXPORT bool DoInferencePipeline(EnginePipeline* enginePipeline, PipelineOutputData* pipelineOutputData)
 {
     try
     {
-        if (!enginePipeline || !pipelineOutputData )
+        if (!enginePipeline || !pipelineOutputData)
         {
             SlowloggingError("[DoInferencePipeline] Bad Input Data ");
             return false;

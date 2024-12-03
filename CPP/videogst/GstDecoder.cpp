@@ -6,7 +6,7 @@ GstDecoder::GstDecoder(GstBufferManager* gstBufferManager)
     if (gstBufferManager == nullptr)
         throw std::runtime_error("Null reference exception {name: GstBufferManager}");
 
-    bufferManager = gstBufferManager;
+    _bufferManager = gstBufferManager;
     _isStreaming = false;
     _isEOS = false;
 }
@@ -33,6 +33,31 @@ GstDecoder::~GstDecoder()
         gst_object_unref(_pipeline);
         _pipeline = NULL;
     }
+}
+
+bool GstDecoder::StartPipeline(string connectCamera)
+{
+    try
+    {
+
+        if (!InitPipeline(connectCamera))
+            return false;
+
+        if (!Open())
+            return false;
+
+        return true;
+    }
+    catch (exception& e)
+    {
+        _logger->error("[GstDecoder::StartPipeline]  {}", e.what());
+    }
+    catch (...)
+    {
+        _logger->error("[GstDecoder::StartPipeline]  Unknown exception!");
+    }
+
+    return false;
 }
 
 
@@ -239,7 +264,7 @@ void GstDecoder::CheckBuffer()
         release_return;
     }
 
-    if (!bufferManager->Enqueue(gstBuffer, gstCaps))
+    if (!_bufferManager->Enqueue(gstBuffer, gstCaps))
     {
         warn("[GstDecoder::CheckBuffer] failed to handle incoming buffer");
         release_return;
@@ -302,7 +327,7 @@ bool GstDecoder::Open()
     }
 
     CheckMsgBus();
-    usleep(100 * 1000);
+    usleep(100 * 1000); //TODO: может возможно выкинуть?
     CheckMsgBus();
 
     _isStreaming = true;

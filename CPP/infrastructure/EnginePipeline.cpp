@@ -1,19 +1,18 @@
 #include "EnginePipeline.h"
 
 
-
-
-EnginePipeline::EnginePipeline(TRTEngine* trtEngine, BufferFrameGpu* bufferFrameGpu,
-                               GstBufferManager* gstBufferManager, GstDecoder* gstDecoder, cudaStream_t* streem,
-                               SettingPipeline* settingPipeline, NvJpgEncoder* encoder)
+EnginePipeline::EnginePipeline(TRTEngine* trtEngine,
+                               BufferFrameGpu* bufferFrameGpu,
+                               cudaStream_t* streem,
+                               SettingPipeline* settingPipeline,
+                               NvJpgEncoder* encoder)
 {
-    if (!trtEngine || !bufferFrameGpu || !gstBufferManager || !gstDecoder || !streem || !encoder)
+    if (!trtEngine || !bufferFrameGpu || !streem || !encoder)
         throw std::runtime_error("[ThermalPipeline::ThermalPipeline] Null reference exception");
 
     _trtEngine = trtEngine;
     _bufferFrameGpu = bufferFrameGpu;
-    _gstBufferManager = gstBufferManager;
-    _gstDecoder = gstDecoder;
+
     _streem = streem;
     _settingPipeline = settingPipeline;
     _encoder = encoder;
@@ -23,26 +22,6 @@ EnginePipeline::EnginePipeline(TRTEngine* trtEngine, BufferFrameGpu* bufferFrame
         Npp32f>::CreateNew(_settingPipeline->WidthImgMl, _settingPipeline->HeightImgMl, channel);
 }
 
-bool EnginePipeline::StartPipeline(string connectCamera)
-{
-    try
-    {
-        _gstDecoder->InitPipeline(connectCamera);
-        _gstDecoder->Open();
-
-        return true;
-    }
-    catch (exception& e)
-    {
-        _logger->error("[ThermalPipeline::StartPipeline]  {}", e.what());
-    }
-    catch (...)
-    {
-        _logger->error("[ThermalPipeline::StartPipeline]  Unknown exception!");
-    }
-
-    return false;
-}
 
 bool EnginePipeline::ConverterDetection(vector<Detection>& vector)
 {
@@ -63,7 +42,7 @@ void EnginePipeline::UpdateCurrentTimeStamp(uint64_t& timeStamp)
 
 void EnginePipeline::LoadImgToTrt()
 {
-    if ( !_imageBackground || !_currentImage)
+    if (!_imageBackground || !_currentImage)
         throw std::runtime_error("[ThermalPipeline::LoadImgToTrt] Null reference exception");
 
     auto currentImgFloat = _nppFunctions->ConvertFrame8u32f(_currentImage);
@@ -75,9 +54,11 @@ void EnginePipeline::LoadImgToTrt()
     CUDA_FAILED(
         cudaMemcpy(ptrImgGPU, resDiffImg->ImagePtr(), oneLayerSize* sizeof(float), cudaMemcpyDeviceToDevice));
     CUDA_FAILED(
-            cudaMemcpy(ptrImgGPU+oneLayerSize, _imageBackground->ImagePtr(), oneLayerSize* sizeof(float), cudaMemcpyDeviceToDevice));
+        cudaMemcpy(ptrImgGPU+oneLayerSize, _imageBackground->ImagePtr(), oneLayerSize* sizeof(float),
+            cudaMemcpyDeviceToDevice));
     CUDA_FAILED(
-        cudaMemcpy(ptrImgGPU +oneLayerSize+oneLayerSize, currentImgFloat->ImagePtr(), oneLayerSize* sizeof(float), cudaMemcpyDeviceToDevice));
+        cudaMemcpy(ptrImgGPU +oneLayerSize+oneLayerSize, currentImgFloat->ImagePtr(), oneLayerSize* sizeof(float),
+            cudaMemcpyDeviceToDevice));
 
     FREE_FRAME_GPU(currentImgFloat);
     FREE_FRAME_GPU(resDiffImg);
@@ -91,18 +72,16 @@ void EnginePipeline::UpdateBackground()
 
     float alpha = 1.0 / _settingPipeline->CountImgToBackground; // 1/25 fps
 
-    _imageBackground = _nppFunctions->AddWeighted(_imageBackground, _currentImage,alpha);
+    _imageBackground = _nppFunctions->AddWeighted(_imageBackground, _currentImage, alpha);
 }
-
 
 
 bool EnginePipeline::GetResultImages(vector<Detection>& resultNms, uint64_t& timeStamp)
 {
     try
     {
-        FrameGpu<Npp8u>* frame;
+        FrameGpu<Npp8u>* frame = nullptr;
         auto result = _bufferFrameGpu->Dequeue(&frame);
-
 
         if (!result || !frame)
             return false;
@@ -116,13 +95,13 @@ bool EnginePipeline::GetResultImages(vector<Detection>& resultNms, uint64_t& tim
         UpdateCurrentTimeStamp(timeStamp);
         UpdateBackground();
         LoadImgToTrt();
-
         auto resulDoInferenceAsync = _trtEngine->DoInferenceNMSAsync(resultNms);
 
         if (!resulDoInferenceAsync)
             return false;
 
         auto resConvertRect = ConverterDetection(resultNms);
+
         if (!resConvertRect)
             return false;
 
@@ -130,11 +109,11 @@ bool EnginePipeline::GetResultImages(vector<Detection>& resultNms, uint64_t& tim
     }
     catch (exception& e)
     {
-        _logger->error("[ThermalPipeline::GetResultImages]  {}", e.what());
+        _logger->error("[EnginePipeline::GetResultImages]  {}", e.what());
     }
     catch (...)
     {
-        _logger->error("[ThermalPipeline::GetResultImages]  Unknown exception!");
+        _logger->error("[EnginePipeline::GetResultImages]  Unknown exception!");
     }
 
     return false;

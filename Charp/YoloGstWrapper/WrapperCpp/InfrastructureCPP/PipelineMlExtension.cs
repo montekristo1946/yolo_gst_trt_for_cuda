@@ -15,7 +15,7 @@ public class PipelineMlExtension : IDisposable,IPipelineMlExtension
     private readonly nint _trtEngine = nint.Zero;
     private readonly nint _bufferFrameGpu = nint.Zero;
     private readonly nint _bufferManager = nint.Zero;
-    private readonly nint _gstDecoder = nint.Zero;
+    private  nint _gstDecoder = nint.Zero;
     private readonly nint _encoder = nint.Zero;
     private readonly nint _pipeline = nint.Zero;
 
@@ -48,7 +48,6 @@ public class PipelineMlExtension : IDisposable,IPipelineMlExtension
         _trtEngine = CreateTrtEngin(config);
         _bufferFrameGpu = CreateBufferFrameGpu();
         _bufferManager = CreateGstBufferManager();
-        _gstDecoder = CreateGstDecoder();
         _encoder = CreateEncoder();
         _pipeline = CreatePipeline(config);
     }
@@ -58,18 +57,13 @@ public class PipelineMlExtension : IDisposable,IPipelineMlExtension
         var configPipeline = new SettingPipeline(config.WidthImgMl,
             config.HeightImgMl,
             config.CountImgToBackground);
-
-        var connetctionString = new StringBuilder(config.ConnetctionString);
-
+        
         var retPtr = PipelinePInvoke.CreateEnginPipeline(
             _trtEngine,
             _bufferFrameGpu,
-            _bufferManager,
-            _gstDecoder,
             _cudaStream,
             ref configPipeline,
-            _encoder,
-            connetctionString);
+            _encoder);
 
         if (retPtr == nint.Zero)
         {
@@ -78,6 +72,7 @@ public class PipelineMlExtension : IDisposable,IPipelineMlExtension
 
         return retPtr;
     }
+    
 
     private IntPtr CreateEncoder()
     {
@@ -93,6 +88,9 @@ public class PipelineMlExtension : IDisposable,IPipelineMlExtension
 
     private IntPtr CreateGstDecoder()
     {
+        if(_bufferManager == IntPtr.Zero)
+            throw new Exception("[PipelineMlExtension:CreateGstDecoder] bufferManager not init");
+        
         var retPtr = PipelinePInvoke.CreateGstDecoder(_bufferManager);
 
         if (retPtr == nint.Zero)
@@ -105,6 +103,9 @@ public class PipelineMlExtension : IDisposable,IPipelineMlExtension
 
     private IntPtr CreateGstBufferManager()
     {
+        if(_bufferFrameGpu == IntPtr.Zero || _cudaStream == IntPtr.Zero)
+            throw new Exception("[PipelineMlExtension:CreateGstBufferManager] bufferManager not init");
+        
         var retPtr = PipelinePInvoke.CreateGstBufferManager(_bufferFrameGpu, _cudaStream);
 
         if (retPtr == nint.Zero)
@@ -234,7 +235,6 @@ public class PipelineMlExtension : IDisposable,IPipelineMlExtension
     public DoInferenceImageResult GetCurrenImage()
     {
         var imageFrame = new ImageFrame();
-        
 
         try
         {
@@ -292,5 +292,19 @@ public class PipelineMlExtension : IDisposable,IPipelineMlExtension
         var res            = PipelinePInvoke.ConverterNetworkWeight(assetsPathChar, exportSaveChar, ref inputLayerCpp, idGpu, setHalfModel);
 
         return res;
+    }
+
+    public async Task<bool> StartPipelineGst(string connetctionString)
+    {
+        if (_gstDecoder != nint.Zero)
+            PipelinePInvoke.Dispose(_gstDecoder);
+        
+        _gstDecoder = CreateGstDecoder();
+        var connectionOnCameraPipliene = new StringBuilder(connetctionString);
+        
+        var res = PipelinePInvoke.StartPipelineGst( _gstDecoder, connectionOnCameraPipliene);
+        // await Task.Delay(5000);
+        return res;
+        
     }
 }

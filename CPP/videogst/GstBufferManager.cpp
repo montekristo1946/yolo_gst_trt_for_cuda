@@ -7,7 +7,6 @@ GstBufferManager::GstBufferManager(BufferFrameGpu* bufferFrameGpu, cudaStream_t*
         throw std::runtime_error(
             "[GstBufferManager::GstBufferManager] Null reference exception {name: BufferFrameGpu} {name: cudaStream_t}");
 
-
     _bufferFrameGpu = bufferFrameGpu;
     _stream = stream;
 }
@@ -29,25 +28,20 @@ FrameGpu<Npp8u>* GstBufferManager::CreateImage(const NvBufSurfaceParams& nvBufSu
     if (width <= 0 || height <= 0 || pitch <= 0)
         throw std::runtime_error("[GstBufferManager::CreateImage] Invalid image size");
 
+    auto channel = 3;
+    // auto converImage = FrameGpu<Npp8u>::CreateNew(width, height, channel);
+    //TODO: заменить на конструктор выше
     const size_t rgbBufferSize = width * height * sizeof(uchar3) ;
-    void* converImage = NULL;
+    void* converImage = nullptr;
 
     CUDA_FAILED(cudaMallocAsync(&converImage, rgbBufferSize,*_stream));
     CUDA_FAILED(
         _cudaYUV_NV12.CudaNV12ToRGB(nvBufSurfaceParams.dataPtr, static_cast<uchar3*>(converImage), width, height, pitch,*_stream));
 
-    auto channel = 3;
     auto rgbFrame = new FrameGpu(static_cast<Npp8u*>(converImage), width, height, 1, channel);
     auto imtGray = _nppFunctions->RGBToGray(rgbFrame);
-
     delete rgbFrame;
-    // CUDA_FAILED(cudaFree(converImage));
 
-    // auto imgSrc = cuda::GpuMat(height, width, CV_8UC3, converImage);
-    // auto imtGray = new cuda::GpuMat();
-    // cuda::cvtColor(imgSrc, *imtGray, COLOR_BGR2GRAY);
-    //
-    // cudaFree(converImage);
     return imtGray;
 }
 
@@ -89,6 +83,7 @@ bool GstBufferManager::Enqueue(GstBuffer* gstBuffer, GstCaps* gstCaps)
 
     auto frame = CreateImage(infoData->surfaceList[0]);
     frame->SetTimestamp(timestamp);
+
     _bufferFrameGpu->Enqueue(frame);
 
     gst_buffer_unmap(gstBuffer, &map);

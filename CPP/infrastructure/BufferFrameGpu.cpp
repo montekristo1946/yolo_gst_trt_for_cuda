@@ -1,102 +1,82 @@
-
 #include "BufferFrameGpu.h"
-
-
 
 
 // Constructor for FrameGpu class
 // Initializes the FrameGpu object with a buffer size
 BufferFrameGpu::BufferFrameGpu(unsigned sizeBuffer)
 {
+    if (sizeBuffer <= 0)
+        throw runtime_error("[BufferFrameGpu::BufferFrameGpu] sizeBuffer <= 0");
+
+    printf("test F BufferFrameGpu ctor %d \n", sizeBuffer);
+
     _sizeBuffer = sizeBuffer;
+    _queue = ConcurrentQueue<FrameGpu<Npp8u>*>(_sizeBuffer);
 }
 
 BufferFrameGpu::~BufferFrameGpu()
 {
-    while (!_queueFrame.empty())
+    FrameGpu<Npp8u>* curentIntqueue;
+    while (_queue.try_dequeue(curentIntqueue))
     {
-        // Remove and delete the oldest frame to make space
-        auto *frameTmp = _queueFrame.front();
-        _queueFrame.pop();
-        delete frameTmp;
+        info("[BufferFrameGpu::~BufferFrameGpu] Delete Images: {timestamp} ", curentIntqueue->Timestamp());
+        delete curentIntqueue;
     }
     info("[~BufferFrameGpu] Call");
 }
 
 
-
-/**
- * @brief Enqueues a FrameGpu object into the buffer queue.
- *
- * This function adds a FrameGpu object to the end of the queue. If the queue
- * size exceeds the buffer size, it will remove and delete the oldest frame
- * to make space. Uses a mutex for thread safety.
- *
- * @param frame Pointer to the FrameGpu object to be enqueued.
- * @return true If the frame was successfully enqueued.
- * @return false If an exception occurred during enqueuing.
- */
 bool BufferFrameGpu::Enqueue(FrameGpu<Npp8u>* frame)
 {
-   unique_lock lock(_mtx); // Acquire lock for thread safety
     try
     {
-        while (_queueFrame.size() >= _sizeBuffer)
+        if (_queue.size_approx() >= _sizeBuffer)
         {
-            // warn("[BufferFrameGpu::Enqueue] skip Frame");
-            auto *frameTmp = _queueFrame.front();
-            _queueFrame.pop();
-            std::unique_ptr<FrameGpu<Npp8u>> frameUn(frameTmp);
-            // delete frameTmp;
+            FrameGpu<Npp8u>* frameTmp = nullptr;
+            while (_queue.try_dequeue(frameTmp))
+            {
+                warn("[BufferFrameGpu::Enqueue] Delete Images: {timestamp} ", frameTmp->Timestamp());
+                delete frameTmp;
+            };
         }
 
-        _queueFrame.push(frame);
+        if (!_queue.try_enqueue(frame))
+        {
+            error("[BufferFrameGpu::Enqueue] Fail Add enqueue ");
+            if(frame)
+            {
+                delete frame;
+                frame = nullptr;
+            }
+            return false;
+        }
 
         return true;
     }
     catch (...)
     {
-        // Log an error if enqueuing fails
-        spdlog::error("[BufferFrameGpu::Enqueue] fail _queueFrame.push(frame);");
-        lock.unlock();
+        error("[BufferFrameGpu::Enqueue] fail _queueFrame.push(frame);");
     }
+
 
     return false;
 }
 
-/**
- * @brief Retrieves the oldest FrameGpu object from the buffer queue.
- *
- * This function retrieves the oldest FrameGpu object from the front of the
- * queue. If the queue is empty, it returns false and does not modify the
- * referenced frame object. Uses a mutex for thread safety.
- *
- * @param frame Reference to a FrameGpu pointer to store the dequeued frame.
- * @return true If a frame was successfully dequeued.
- * @return false If an exception occurred during dequeuing or the queue is empty.
- */
+
 bool BufferFrameGpu::Dequeue(FrameGpu<Npp8u>** frame)
 {
-    unique_lock lock(_mtx);
     try
     {
-        // Check if the queue is empty
-        if (_queueFrame.empty())
+        if(!_queue.try_dequeue(*frame))
         {
-            return false; // Queue is empty
+            return false;
         }
-
-        // Retrieve the oldest frame from the front of the queue
-        *frame = _queueFrame.front();
-        _queueFrame.pop();
 
         return true;
     }
     catch (...)
     {
-        // Log an error if dequeuing fails
-        spdlog::error("[BufferFrameGpu::Dequeue] fail _queueFrame.front();");
-        lock.unlock();
+        error("[BufferFrameGpu::Dequeue] fail _queueFrame.front();");
     }
 
     return false;
