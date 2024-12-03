@@ -46,7 +46,7 @@ public:
 
     }
 
-    int GetStep() const { return _width * sizeof(T); }
+    int GetStep() const { return _width *_channels* sizeof(T); }
 
     uint64_t Timestamp() const { return _timestamp; }
     int Width() const { return _width; }

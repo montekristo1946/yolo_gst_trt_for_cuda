@@ -1,26 +1,26 @@
 #include "BufferFrameGpu.h"
 
 
-// Constructor for FrameGpu class
-// Initializes the FrameGpu object with a buffer size
+
 BufferFrameGpu::BufferFrameGpu(unsigned sizeBuffer)
 {
     if (sizeBuffer <= 0)
         throw runtime_error("[BufferFrameGpu::BufferFrameGpu] sizeBuffer <= 0");
 
-    printf("test F BufferFrameGpu ctor %d \n", sizeBuffer);
-
+    info("[BufferFrameGpu::BufferFrameGpu] Ctor sizeBuffer:{}", sizeBuffer);
     _sizeBuffer = sizeBuffer;
-    _queue = ConcurrentQueue<FrameGpu<Npp8u>*>(_sizeBuffer);
+
 }
 
 BufferFrameGpu::~BufferFrameGpu()
 {
-    FrameGpu<Npp8u>* curentIntqueue;
-    while (_queue.try_dequeue(curentIntqueue))
+    unique_lock lock(_mtx);
+    while (!_queueFrame.empty())
     {
-        info("[BufferFrameGpu::~BufferFrameGpu] Delete Images: {timestamp} ", curentIntqueue->Timestamp());
-        delete curentIntqueue;
+        auto *frameTmp = _queueFrame.front();
+        _queueFrame.pop();
+        warn("[BufferFrameGpu::~BufferFrameGpu] Delete Frame: {}", frameTmp->Timestamp());
+        delete frameTmp;
     }
     info("[~BufferFrameGpu] Call");
 }
@@ -28,56 +28,57 @@ BufferFrameGpu::~BufferFrameGpu()
 
 bool BufferFrameGpu::Enqueue(FrameGpu<Npp8u>* frame)
 {
+    unique_lock lock(_mtx); // Acquire lock for thread safety
     try
     {
-        if (_queue.size_approx() >= _sizeBuffer)
+        while (_queueFrame.size() >= _sizeBuffer)
         {
-            FrameGpu<Npp8u>* frameTmp = nullptr;
-            while (_queue.try_dequeue(frameTmp))
-            {
-                warn("[BufferFrameGpu::Enqueue] Delete Images: {timestamp} ", frameTmp->Timestamp());
-                delete frameTmp;
-            };
+            auto *frameTmp = _queueFrame.front();
+            _queueFrame.pop();
+            // std::unique_ptr<FrameGpu<Npp8u>> frameUn(frameTmp);
+            warn("[BufferFrameGpu::Enqueue] skip Frame: {}", frameTmp->Timestamp());
+            delete frameTmp;
+
         }
 
-        if (!_queue.try_enqueue(frame))
-        {
-            error("[BufferFrameGpu::Enqueue] Fail Add enqueue ");
-            if(frame)
-            {
-                delete frame;
-                frame = nullptr;
-            }
-            return false;
-        }
+        _queueFrame.push(frame);
 
         return true;
     }
     catch (...)
     {
+        // Log an error if enqueuing fails
         error("[BufferFrameGpu::Enqueue] fail _queueFrame.push(frame);");
+        lock.unlock();
     }
 
-
     return false;
+
 }
 
 
 bool BufferFrameGpu::Dequeue(FrameGpu<Npp8u>** frame)
 {
+    unique_lock lock(_mtx);
     try
     {
-        if(!_queue.try_dequeue(*frame))
+        // Check if the queue is empty
+        if (_queueFrame.empty())
         {
-            return false;
+            return false; // Queue is empty
         }
+
+        *frame = _queueFrame.front();
+        _queueFrame.pop();
 
         return true;
     }
     catch (...)
     {
         error("[BufferFrameGpu::Dequeue] fail _queueFrame.front();");
+        lock.unlock();
     }
 
     return false;
+
 }

@@ -29,16 +29,11 @@ FrameGpu<Npp8u>* GstBufferManager::CreateImage(const NvBufSurfaceParams& nvBufSu
         throw std::runtime_error("[GstBufferManager::CreateImage] Invalid image size");
 
     auto channel = 3;
-    // auto converImage = FrameGpu<Npp8u>::CreateNew(width, height, channel);
-    //TODO: заменить на конструктор выше
-    const size_t rgbBufferSize = width * height * sizeof(uchar3) ;
-    void* converImage = nullptr;
+    auto rgbFrame = FrameGpu<Npp8u>::CreateNew(width, height, channel);
 
-    CUDA_FAILED(cudaMallocAsync(&converImage, rgbBufferSize,*_stream));
     CUDA_FAILED(
-        _cudaYUV_NV12.CudaNV12ToRGB(nvBufSurfaceParams.dataPtr, static_cast<uchar3*>(converImage), width, height, pitch,*_stream));
+        _cudaYUV_NV12.CudaNV12ToRGB(nvBufSurfaceParams.dataPtr, reinterpret_cast<uchar3*>(rgbFrame->ImagePtr()), width, height, pitch,*_stream));
 
-    auto rgbFrame = new FrameGpu(static_cast<Npp8u*>(converImage), width, height, 1, channel);
     auto imtGray = _nppFunctions->RGBToGray(rgbFrame);
     delete rgbFrame;
 
@@ -94,7 +89,7 @@ bool GstBufferManager::Enqueue(GstBuffer* gstBuffer, GstCaps* gstCaps)
 
 GstBufferManager::~GstBufferManager()
 {
-    _logger->info("[~GstBufferManager] Call");
+    info("[GstBufferManager::~GstBufferManager] Call");
     if (_nppFunctions)
         delete _nppFunctions;
 }

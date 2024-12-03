@@ -128,7 +128,6 @@ target_link_libraries(NvJpgEncoderlib PUBLIC ${ALL_LIB} stdc++fs)
 
 #GstreamerLib --------------------------------------------------------------------------------------------------------------
 add_library(GstreamerLib STATIC
-        ${PROJECT_SOURCE_DIR}/include/Concurrentqueue.h
         ${PROJECT_SOURCE_DIR}/videogst/GstUtility.cpp
         ${PROJECT_SOURCE_DIR}/videogst/GstDecoder.cpp
         ${PROJECT_SOURCE_DIR}/videogst/GstBufferManager.cpp

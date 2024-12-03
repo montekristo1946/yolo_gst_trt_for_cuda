@@ -33,6 +33,13 @@ char* CreateConnectString()
         << "! video/x-raw(memory:NVMM)"
         << "! appsink name=mysink sync=true";
 
+    // ss2  << "rtspsrc location=rtsp://admin:jkluio789@192.168.1.15:554 latency=1000 "
+    //                <<  "! rtph264depay "
+    //              <<    "! nvv4l2decoder "
+    //               <<   "! nvvideoconvert nvbuf-memory-type=3 "
+    //               <<   "! video/x-raw(memory:NVMM) "
+    //                <<  "! appsink name=mysink sync=true";
+
     auto mLaunchStr = ss2.str();
     char* pathLogArrChar = new char[mLaunchStr.length() + 1];
     strcpy(pathLogArrChar, mLaunchStr.c_str());
@@ -165,7 +172,7 @@ void Test_reconnect_pipeline(const char* model_output, bool isShow = false)
         if (!resConnect)
             throw runtime_error("[Test_init_pipeline] StartPipelineGst");
 
-        auto countImg = 100;
+        auto countImg = 1000;
         while (countImg > 0)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));

@@ -3,6 +3,7 @@
 
 GstDecoder::GstDecoder(GstBufferManager* gstBufferManager)
 {
+    _logger->info("[GstDecoder] ctor Call");
     if (gstBufferManager == nullptr)
         throw std::runtime_error("Null reference exception {name: GstBufferManager}");
 
@@ -327,7 +328,7 @@ bool GstDecoder::Open()
     }
 
     CheckMsgBus();
-    usleep(100 * 1000); //TODO: может возможно выкинуть?
+    usleep(100 * 1000);
     CheckMsgBus();
 
     _isStreaming = true;

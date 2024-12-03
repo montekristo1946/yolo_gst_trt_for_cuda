@@ -37,7 +37,6 @@ protected:
     CudaYUV_NV12 _cudaYUV_NV12;
 
     cudaStream_t *_stream;
-    shared_ptr<logger> _logger = get("MainLogger");
 
     NppFunction * _nppFunctions = new NppFunction();
 };

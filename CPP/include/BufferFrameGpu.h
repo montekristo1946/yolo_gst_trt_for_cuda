@@ -5,11 +5,11 @@
 #include <IDispose.h>
 #include "common/FrameGpu.h"
 #include <nppdefs.h>
+#include <queue>
 #include <spdlog/spdlog.h>
-#include "Concurrentqueue.h"
+
 
 using namespace std;
-using namespace moodycamel;
 
 class BufferFrameGpu: public IDispose
 {
@@ -24,7 +24,8 @@ public:
 private:
 
     unsigned _sizeBuffer;
-    ConcurrentQueue<FrameGpu<Npp8u> *> _queue ;
+    queue<FrameGpu<Npp8u>*> _queueFrame;
+    std::mutex _mtx;
 };
 
 

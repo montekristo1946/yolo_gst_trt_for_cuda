@@ -52,28 +52,24 @@ FrameGpu<Npp8u>* NppFunction::RGBToGray(const FrameGpu<Npp8u>* sourceImage)
         throw std::invalid_argument("[NppFunction::RGBToGray] Invalid input parameters");
 
     auto channel = 1;
-
-    Npp8u* destinationImage = nullptr;
     const auto width = sourceImage->Width();
     const auto height = sourceImage->Height();
-    const auto sourceStep = sourceImage->Width() * sourceImage->Channels();
-    const auto destinationStep = width;
-
-    const auto destinationSize = width * height;
-    CUDA_FAILED(cudaMalloc(&destinationImage, destinationSize));
+    auto imageGray =  FrameGpu<Npp8u>::CreateNew(width, height, channel);
 
     NppiSize roiSize = {width, height};
     const auto status = nppiRGBToGray_8u_C3C1R(
         sourceImage->ImagePtr(),
-        sourceStep,
-        destinationImage,
-        destinationStep,
+        sourceImage->GetStep(),
+        imageGray->ImagePtr(),
+        imageGray->GetStep(),
         roiSize);
 
     if (status != NPP_SUCCESS)
+    {
+        delete imageGray;
         throw std::runtime_error("[NppFunction::RGBToGray] nppiRGBToGray_8u_C3C1R failed");
-
-    return new FrameGpu(destinationImage, width, height, sourceImage->Timestamp(), channel);
+    }
+    return imageGray;
 }
 
 
