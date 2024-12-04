@@ -294,7 +294,7 @@ public class PipelineMlExtension : IDisposable,IPipelineMlExtension
         return res;
     }
 
-    public async Task<bool> StartPipelineGst(string connetctionString)
+    public bool StartPipelineGst(string connetctionString)
     {
         if (_gstDecoder != nint.Zero)
             PipelinePInvoke.Dispose(_gstDecoder);
@@ -303,8 +303,8 @@ public class PipelineMlExtension : IDisposable,IPipelineMlExtension
         var connectionOnCameraPipliene = new StringBuilder(connetctionString);
         
         var res = PipelinePInvoke.StartPipelineGst( _gstDecoder, connectionOnCameraPipliene);
-        // await Task.Delay(5000);
+
         return res;
-        
+
     }
 }

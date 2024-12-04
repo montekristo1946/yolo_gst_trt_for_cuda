@@ -28,15 +28,15 @@ BufferFrameGpu::~BufferFrameGpu()
 
 bool BufferFrameGpu::Enqueue(FrameGpu<Npp8u>* frame)
 {
-    unique_lock lock(_mtx); // Acquire lock for thread safety
+    unique_lock lock(_mtx);
     try
     {
+        const int countMilisec = 1000000;
         while (_queueFrame.size() >= _sizeBuffer)
         {
             auto *frameTmp = _queueFrame.front();
             _queueFrame.pop();
-            // std::unique_ptr<FrameGpu<Npp8u>> frameUn(frameTmp);
-            warn("[BufferFrameGpu::Enqueue] skip Frame: {}", frameTmp->Timestamp());
+            warn("[BufferFrameGpu::Enqueue] skip FrameTime: {} ms, sizeBuffer:{}", frameTmp->Timestamp()/countMilisec,_queueFrame.size() );
             delete frameTmp;
 
         }
@@ -47,7 +47,6 @@ bool BufferFrameGpu::Enqueue(FrameGpu<Npp8u>* frame)
     }
     catch (...)
     {
-        // Log an error if enqueuing fails
         error("[BufferFrameGpu::Enqueue] fail _queueFrame.push(frame);");
         lock.unlock();
     }
