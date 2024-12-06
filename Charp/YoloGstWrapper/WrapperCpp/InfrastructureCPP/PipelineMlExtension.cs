@@ -301,9 +301,10 @@ public class PipelineMlExtension : IDisposable,IPipelineMlExtension
         
         _gstDecoder = CreateGstDecoder();
         var connectionOnCameraPipliene = new StringBuilder(connetctionString);
-        
-        var res = PipelinePInvoke.StartPipelineGst( _gstDecoder, connectionOnCameraPipliene);
+        Log.Information("[StartPipelineGst] connectionOnCameraPipliene: {connectionOnCameraPipliene}", connectionOnCameraPipliene);
 
+        var res = PipelinePInvoke.StartPipelineGst( _gstDecoder, connectionOnCameraPipliene);
+        
         return res;
 
     }
