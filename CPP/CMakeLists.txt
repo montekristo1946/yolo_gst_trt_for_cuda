@@ -90,7 +90,11 @@ find_library_create_target(nppial "nppial" SHARED ${CUDA_LIB_DIR})
 find_library_create_target(nppisu "nppisu" SHARED ${CUDA_LIB_DIR})
 find_library_create_target(npps "npps" SHARED ${CUDA_LIB_DIR})
 
-set(ALL_LIB  ${TensorRT_LIBS} cudart libnvjpeg ${GST_LIBS} nppc nppig nppicc nppial nppisu npps)
+
+set(EIGEN_VERSION 3.3)
+find_package(Eigen3 ${EIGEN_VERSION} QUIET)
+
+set(ALL_LIB  ${TensorRT_LIBS} cudart libnvjpeg ${GST_LIBS} nppc nppig nppicc nppial nppisu npps Eigen3::Eigen)
 set(ALL_INCLUDE_LIB ${OpenCV_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR} )
 
 file(GLOB_RECURSE SRCS

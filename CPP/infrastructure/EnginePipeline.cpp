@@ -76,7 +76,7 @@ void EnginePipeline::UpdateBackground()
 }
 
 
-bool EnginePipeline::GetResultImages(vector<Detection>& resultNms, uint64_t& timeStamp)
+bool EnginePipeline::GetResultImages( std::vector<byte_track::BYTETracker::STrackPtr>& resultNms, uint64_t& timeStamp)
 {
     try
     {
@@ -95,15 +95,51 @@ bool EnginePipeline::GetResultImages(vector<Detection>& resultNms, uint64_t& tim
         UpdateCurrentTimeStamp(timeStamp);
         UpdateBackground();
         LoadImgToTrt();
-        auto resulDoInferenceAsync = _trtEngine->DoInferenceNMSAsync(resultNms);
+        vector<Detection> srcResult;
+        auto resulDoInferenceAsync = _trtEngine->DoInferenceNMSAsync(srcResult);
 
         if (!resulDoInferenceAsync)
             return false;
 
-        auto resConvertRect = ConverterDetection(resultNms);
 
-        if (!resConvertRect)
-            return false;
+        // vector<Detection> sortPeople;
+        // ranges::copy_if(srcResult, std::back_inserter(sortPeople),
+        //                 [](Detection x) { return x.ClassId == 0; });
+
+        std::vector<byte_track::Object> objects;
+        for (auto& det : srcResult)
+        {
+            auto x = det.BBox[0];
+            auto y = det.BBox[1];
+            auto width = det.BBox[2];
+            auto height = det.BBox[3];
+            auto prob = det.Conf;
+            objects.emplace_back(byte_track::Rect(x, y, width, height), det.ClassId, prob);
+        }
+
+      resultNms =  _tracker->update(objects);
+
+
+
+        // auto restRects = vector<Detection>();
+        // for (auto& outputs_per_frame : resTracker)
+        // {
+        //     const auto &rect = outputs_per_frame->getRect();
+        //
+        //     vector<float> bbox = {rect.x(), rect.y(), rect.width(), rect.height()};
+        //     // auto x = rect.x;
+        //     // auto y = rect;
+        //     // auto width = det.BBox[2];
+        //     // auto height = det.BBox[3];
+        //     // auto prob = det.Conf;
+        //     restRects.emplace_back(Detection(bbox,1,1));
+        // }
+
+        // resultNms = sortPeople;
+        // auto resConvertRect = ConverterDetection(resultNms);
+
+        // if (!resConvertRect)
+        //     return false;
 
         return true;
     }

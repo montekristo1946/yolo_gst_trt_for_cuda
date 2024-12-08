@@ -328,7 +328,9 @@ extern "C" MYLIB_EXPORT bool DoInferencePipeline(EnginePipeline* enginePipeline,
 {
     try
     {
-        if (!enginePipeline || !pipelineOutputData)
+        throw std::runtime_error("[DoInferencePipeline] Not implemented");
+
+       /* if (!enginePipeline || !pipelineOutputData)
         {
             SlowloggingError("[DoInferencePipeline] Bad Input Data ");
             return false;
@@ -363,7 +365,7 @@ extern "C" MYLIB_EXPORT bool DoInferencePipeline(EnginePipeline* enginePipeline,
         pipelineOutputData->Rectangles = arr;
 
 
-        return true;
+        return true;*/
     }
     catch (std::exception& e)
     {

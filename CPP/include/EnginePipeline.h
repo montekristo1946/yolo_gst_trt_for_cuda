@@ -9,6 +9,7 @@
 
 #include "NvJpgEncoder.h"
 #include "SettingPipeline.h"
+#include "ByteTrack/BYTETracker.h"
 
 
 class EnginePipeline: public IDispose
@@ -22,7 +23,7 @@ public:
         SettingPipeline* settingPipeline,
         NvJpgEncoder* encoder);
 
-    bool GetResultImages(vector<Detection>& resultNms, uint64_t &timeStamp);
+    bool GetResultImages( std::vector<byte_track::BYTETracker::STrackPtr> & resultNms, uint64_t &timeStamp);
     ~EnginePipeline();
     std::vector<unsigned char>* GetFrame();
     uint64_t GetCurrentTimeStamp() const { return _currentTimeStamp; }
@@ -46,6 +47,8 @@ private:
     NvJpgEncoder* _encoder  = nullptr;
     shared_ptr<logger> _logger = get("MainLogger");
     NppFunction * _nppFunctions = new NppFunction();
+
+    byte_track::BYTETracker * _tracker = new byte_track::BYTETracker(30, 30, 0.5, 0.5, 0.8);
 
 };
 #endif //THERMALPIPLINE_H

@@ -56,6 +56,45 @@ SettingPipeline* CreateSettingPipeline()
 }
 
 
+void DrawingResultsSTrack(const Mat& mat, const vector<byte_track::BYTETracker::STrackPtr>& outputsMl)
+{
+    cv::Scalar colorText(0, 0, 255); // Green color
+    int fontFace = cv::FONT_HERSHEY_SIMPLEX;
+    double fontScale = 0.75;
+    // auto rectsSrc = pipelineOutputData->Rectangles;
+    // vector<RectDetect> rects = vector<RectDetect>(rectsSrc, rectsSrc + pipelineOutputData->RectanglesLen);
+    for (auto &outputs_per_frame : outputsMl)
+    {
+        const auto &rect = outputs_per_frame->getRect();
+        const auto &track_id = outputs_per_frame->getTrackId();
+
+
+        auto width = rect.width();
+        auto height = rect.height();
+        auto x =(int) (rect.x() - rect.width() / 2);
+        auto y = (int) (rect.y()- rect.height() / 2);
+
+        // auto text = to_string(track_id);
+        // auto labelId = outputs_per_frame->getScore();
+        auto color = ColorInLabels[1];
+        rectangle(mat, Rect(x, y, width, height), color, 1, 8, 0);
+        cv::putText(mat, to_string(track_id), cv::Point(x, y), fontFace, fontScale, colorText);
+
+        // auto width = (int)(rect.);
+        // auto height = (int)(rect.Height*ImageHeight);
+        // auto x = (int)((rect.X - rect.Width / 2) *ImageWidth);
+        // auto y = (int)((rect.Y - rect.Height / 2) *ImageHeight);;
+        // auto text = to_string(rect.Veracity);
+        // auto color = ColorInLabels[(int)rect.IdClass];
+        //
+        // rectangle(mat, Rect(x, y, width, height), color, 1, 8, 0);
+        // cv::putText(mat, to_string(rect.TimeStamp), cv::Point(10, ImageHeight-50), fontFace, fontScale, colorText);
+    };
+
+    imshow("Result", mat);
+    waitKey(1);
+}
+
 void Test_init_pipeline(const char* model_output, bool isShow = true)
 {
     printf("______  Test_init_pipeline start______  \n");
@@ -79,20 +118,22 @@ void Test_init_pipeline(const char* model_output, bool isShow = true)
     auto pipeline = CreateEnginPipeline(trtEngine, bufferFrameGpu, cudaStream, settingPipeline, encoder);
 
     auto maxCountDetectRectangle = 150;
-    auto countImg = 10;
+    auto countImg = 10000;
     while (countImg > 0)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         auto start = chrono::system_clock::now();
 
-        auto pipelineOutputData = new PipelineOutputData();
+        std::vector<byte_track::BYTETracker::STrackPtr> resultNms;
 
-        auto res = DoInferencePipeline(pipeline, pipelineOutputData);
+        uint64_t timeStamp;
+        auto res = pipeline->GetResultImages(resultNms, timeStamp);
+
         if (!res)
         {
-            delete pipelineOutputData;
             continue;
         }
+
         countImg--;
 
         ImageFrame* imageFrame = new ImageFrame();
@@ -104,7 +145,7 @@ void Test_init_pipeline(const char* model_output, bool isShow = true)
         auto endCapture = chrono::system_clock::now();
         info("elapsed time: " +
             to_string(chrono::duration_cast<chrono::microseconds>(endCapture - start).count()) +
-            " resultNms.size: " + " " + to_string(pipelineOutputData->RectanglesLen));
+            " resultNms.size: " + " " + to_string(resultNms.size()));
 
         if (imageFrame->ImageLen == 0)
             throw runtime_error("[Test_init_pipeline] encodedImage->size() == 0");
@@ -112,9 +153,10 @@ void Test_init_pipeline(const char* model_output, bool isShow = true)
         if (isShow)
         {
             Mat image = cv::imdecode(cv::_InputArray(imageFrame->ImagesData, imageFrame->ImageLen), cv::IMREAD_COLOR);
-            DrawingResults(image, pipelineOutputData);
+            // DrawingResults(image, pipelineOutputData);
+            DrawingResultsSTrack(image, resultNms);
         }
-        delete pipelineOutputData;
+        // delete pipelineOutputData;
         delete imageFrame;
     }
 
@@ -230,8 +272,8 @@ int main(int argc, char* argv[])
     auto modelOutput = "../weight/model_001.engine";
 
     // Test_ConverterNetWeight(modelInput, modelOutput);
-    // Test_init_pipeline(modelOutput);
+    Test_init_pipeline(modelOutput);
     // Test_memory_leak( modelOutput);
-    Test_reconnect_pipeline(modelOutput,true);
+    // Test_reconnect_pipeline(modelOutput,true);
     return 0;
 }
