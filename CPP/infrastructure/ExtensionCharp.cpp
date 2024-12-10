@@ -251,13 +251,48 @@ extern "C" MYLIB_EXPORT NvJpgEncoder* CreateNvJpgEncoder(CudaStream* cudaStream)
     return nullptr;
 }
 
+extern "C" MYLIB_EXPORT TrackerManager* CreateTrackerManager(  const int frameRate,
+    const int trackBuffer,
+    const float trackThresh,
+    const float highThresh,
+    const float matchThresh,
+    const int maxNumTrackers)
+{
+    info("[CreateTrackerManager] Init TrackerManager");
+    try
+    {
+        auto tracker = new TrackerManager(
+            frameRate,
+            trackBuffer,
+            trackThresh,
+            highThresh,
+            matchThresh,
+            maxNumTrackers);
+
+        OperationalSavingLogs();
+        return tracker;
+    }
+    catch (std::exception& e)
+    {
+        SlowloggingError("[CreateTrackerManager]  " + std::string(e.what()));
+    }
+    catch (...)
+    {
+        SlowloggingError("[CreateTrackerManager] Unknown exception!");
+    }
+
+    return nullptr;
+}
+
+
 extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine,
                                                             BufferFrameGpu* bufferFrameGpu,
                                                             CudaStream* cudaStream,
                                                             SettingPipeline* settingPipeline,
-                                                            NvJpgEncoder* encoder)
+                                                            NvJpgEncoder* encoder,
+                                                            TrackerManager* trackerManager)
 {
-    if(!trtEngine || !bufferFrameGpu || !cudaStream || !settingPipeline || !encoder)
+    if(!trtEngine || !bufferFrameGpu || !cudaStream || !settingPipeline || !encoder || !trackerManager)
     {
         error("[CreateEnginPipeline] Null reference exception");
         return nullptr;
@@ -279,7 +314,9 @@ extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine
         auto pipeline = new EnginePipeline(trtEngine,
                                            bufferFrameGpu,
                                            cudaStream->GetStream(),
-                                           settingPipelineLoc, encoder);
+                                           settingPipelineLoc,
+                                           encoder,
+                                           trackerManager);
 
         OperationalSavingLogs();
         return pipeline;
@@ -323,91 +360,6 @@ extern "C" MYLIB_EXPORT bool StartPipelineGst(GstDecoder* gstDecoder, const char
     return false;
 }
 
-
-extern "C" MYLIB_EXPORT bool DoInferencePipeline(EnginePipeline* enginePipeline, PipelineOutputData* pipelineOutputData)
-{
-    try
-    {
-        throw std::runtime_error("[DoInferencePipeline] Not implemented");
-
-       /* if (!enginePipeline || !pipelineOutputData)
-        {
-            SlowloggingError("[DoInferencePipeline] Bad Input Data ");
-            return false;
-        }
-
-        vector<Detection> resultNms;
-        uint64_t timeStamp;
-        auto res = enginePipeline->GetResultImages(resultNms, timeStamp);
-
-        if (!res)
-        {
-            return false;
-        }
-
-
-        auto* arr = new RectDetect[resultNms.size()];
-
-
-        for (int i = 0; i < resultNms.size(); ++i)
-        {
-            auto rect = &arr[i];
-            rect->X = resultNms[i].BBox[0];
-            rect->Y = resultNms[i].BBox[1];
-            rect->Width = resultNms[i].BBox[2];
-            rect->Height = resultNms[i].BBox[3];
-            rect->IdClass = resultNms[i].ClassId;
-            rect->TimeStamp = timeStamp;
-            rect->Veracity = resultNms[i].Conf;
-        }
-
-        pipelineOutputData->RectanglesLen = resultNms.size();
-        pipelineOutputData->Rectangles = arr;
-
-
-        return true;*/
-    }
-    catch (std::exception& e)
-    {
-        SlowloggingError("[DoInferencePipeline]  " + std::string(e.what()));
-    }
-    catch (...)
-    {
-        SlowloggingError("[DoInferencePipeline] Unknown exception!");
-    }
-
-    return false;
-}
-
-extern "C" MYLIB_EXPORT bool GetCurrenImage(EnginePipeline* enginePipeline, ImageFrame* image)
-{
-    try
-    {
-        if (!image)
-        {
-            SlowloggingError("[GetCurrenImage] Bad Input Data ");
-            return false;
-        }
-        std::vector<unsigned char>* encodedImage = enginePipeline->GetFrame();
-        auto timeStamp = enginePipeline->GetCurrentTimeStamp();
-        auto arrOutput = new unsigned char[encodedImage->size()];
-        copy(encodedImage->begin(), encodedImage->end(), arrOutput);
-        image->ImageLen = encodedImage->size();
-        image->ImagesData = arrOutput;
-        image->TimeStamp = timeStamp;
-        return true;
-    }
-    catch (std::exception& e)
-    {
-        SlowloggingError("[GetCurrenImage]  " + std::string(e.what()));
-    }
-    catch (...)
-    {
-        SlowloggingError("[GetCurrenImage] Unknown exception!");
-    }
-
-    return false;
-}
 
 extern "C" MYLIB_EXPORT bool Dispose(IDispose* ptr)
 {
@@ -460,3 +412,87 @@ extern "C" MYLIB_EXPORT bool DisposeArr(void* ptr)
 
     return false;
 }
+
+extern "C" MYLIB_EXPORT bool DoInferencePipeline(EnginePipeline* enginePipeline, PipelineOutputData* pipelineOutputData)
+{
+    try
+    {
+
+       if (!enginePipeline || !pipelineOutputData)
+        {
+            SlowloggingError("[DoInferencePipeline] Bad Input Data ");
+            return false;
+        }
+
+        vector<RectDetect> resultNms;
+        auto res = enginePipeline->GetResultImages(resultNms);
+
+        if (!res)
+        {
+            return false;
+        }
+
+
+        auto* arr = new RectDetect[resultNms.size()];
+        copy(resultNms.begin(), resultNms.end(), arr);
+
+        // for (int i = 0; i < resultNms.size(); ++i)
+        // {
+        //     auto rect = &arr[i];
+        //     rect->X = resultNms[i].X;
+        //     rect->Y = resultNms[i].BBox[1];
+        //     rect->Width = resultNms[i].BBox[2];
+        //     rect->Height = resultNms[i].BBox[3];
+        //     rect->IdClass = resultNms[i].ClassId;
+        //     rect->TimeStamp = timeStamp;
+        //     rect->Veracity = resultNms[i].Conf;
+        // }
+
+        pipelineOutputData->RectanglesLen = resultNms.size();
+        pipelineOutputData->Rectangles = arr;
+
+
+        return true;
+    }
+    catch (std::exception& e)
+    {
+        SlowloggingError("[DoInferencePipeline]  " + std::string(e.what()));
+    }
+    catch (...)
+    {
+        SlowloggingError("[DoInferencePipeline] Unknown exception!");
+    }
+
+    return false;
+}
+
+extern "C" MYLIB_EXPORT bool GetCurrenImage(EnginePipeline* enginePipeline, ImageFrame* image)
+{
+    try
+    {
+        if (!image)
+        {
+            SlowloggingError("[GetCurrenImage] Bad Input Data ");
+            return false;
+        }
+        std::vector<unsigned char>* encodedImage = enginePipeline->GetFrame();
+        auto timeStamp = enginePipeline->GetCurrentTimeStamp();
+        auto arrOutput = new unsigned char[encodedImage->size()];
+        copy(encodedImage->begin(), encodedImage->end(), arrOutput);
+        image->ImageLen = encodedImage->size();
+        image->ImagesData = arrOutput;
+        image->TimeStamp = timeStamp;
+        return true;
+    }
+    catch (std::exception& e)
+    {
+        SlowloggingError("[GetCurrenImage]  " + std::string(e.what()));
+    }
+    catch (...)
+    {
+        SlowloggingError("[GetCurrenImage] Unknown exception!");
+    }
+
+    return false;
+}
+

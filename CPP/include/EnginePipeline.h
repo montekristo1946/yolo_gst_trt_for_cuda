@@ -4,6 +4,7 @@
 #include <BufferFrameGpu.h>
 #include <GstBufferManager.h>
 #include <IDispose.h>
+#include <TrackerManager.h>
 #include <TRTEngine.hpp>
 
 
@@ -21,15 +22,16 @@ public:
         BufferFrameGpu *bufferFrameGpu,
         cudaStream_t* streem,
         SettingPipeline* settingPipeline,
-        NvJpgEncoder* encoder);
+        NvJpgEncoder* encoder,
+        TrackerManager* _trackerManager);
 
-    bool GetResultImages( std::vector<byte_track::BYTETracker::STrackPtr> & resultNms, uint64_t &timeStamp);
+    bool GetResultImages( vector<RectDetect>&  result);
     ~EnginePipeline();
     std::vector<unsigned char>* GetFrame();
     uint64_t GetCurrentTimeStamp() const { return _currentTimeStamp; }
 
 private:
-    bool ConverterDetection(vector<Detection>& vector);
+    bool ConverterDetection(vector<RectDetect>& vector);
     void UpdateCurrentTimeStamp(uint64_t &uint64);
     void UpdateCurrentImg(FrameGpu<Npp8u>* frame);
     void UpdateBackground();
@@ -37,9 +39,10 @@ private:
 
     TRTEngine *_trtEngine = nullptr;
     BufferFrameGpu *_bufferFrameGpu = nullptr;
-
     cudaStream_t* _streem = 0;
     SettingPipeline* _settingPipeline= nullptr;
+    TrackerManager* _trackerManager  = nullptr;
+
     std::vector<uchar> _imagesExport ;
     FrameGpu<Npp32f> *_imageBackground = nullptr;
     FrameGpu<Npp8u>* _currentImage = nullptr;
@@ -48,7 +51,9 @@ private:
     shared_ptr<logger> _logger = get("MainLogger");
     NppFunction * _nppFunctions = new NppFunction();
 
-    byte_track::BYTETracker * _tracker = new byte_track::BYTETracker(30, 30, 0.5, 0.5, 0.8);
+    // byte_track::BYTETracker * _tracker = new byte_track::BYTETracker(75, 75, 0.2, 0.5, 0.7);
+
+
 
 };
 #endif //THERMALPIPLINE_H

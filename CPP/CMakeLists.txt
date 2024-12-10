@@ -158,7 +158,8 @@ target_link_libraries(ExtensionCharpStatic PUBLIC ${ALL_LIB} stdc++fs ${LibTrtSt
 
 
 # ExtensionCharp --------------------------------------------------------------------------------------------------------------
-add_library(ExtensionCharp SHARED ${SRCS})
+add_library(ExtensionCharp SHARED ${SRCS}
+        infrastructure/TrackerManager.cpp)
 target_include_directories(ExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
 target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs  )
 

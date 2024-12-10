@@ -26,7 +26,7 @@ void Test_ConverterNetWeight(const string modelInput, const string modelOutput)
 char* CreateConnectString()
 {
     std::ostringstream ss2;
-    ss2 << "filesrc location=/mnt/Disk_D/Document/Teplovisors/Dataset/010/11.09.2024_001.avi "
+    ss2 << "filesrc location=/mnt/Disk_D/Document/Teplovisors/Dataset/010/09.09.2024_002.avi "
         << "! avidemux "
         << "! nvv4l2decoder "
         << "! nvvideoconvert nvbuf-memory-type=3 "
@@ -56,43 +56,9 @@ SettingPipeline* CreateSettingPipeline()
 }
 
 
-void DrawingResultsSTrack(const Mat& mat, const vector<byte_track::BYTETracker::STrackPtr>& outputsMl)
+TrackerManager* CreateManagerTrack()
 {
-    cv::Scalar colorText(0, 0, 255); // Green color
-    int fontFace = cv::FONT_HERSHEY_SIMPLEX;
-    double fontScale = 0.75;
-    // auto rectsSrc = pipelineOutputData->Rectangles;
-    // vector<RectDetect> rects = vector<RectDetect>(rectsSrc, rectsSrc + pipelineOutputData->RectanglesLen);
-    for (auto &outputs_per_frame : outputsMl)
-    {
-        const auto &rect = outputs_per_frame->getRect();
-        const auto &track_id = outputs_per_frame->getTrackId();
-
-
-        auto width = rect.width();
-        auto height = rect.height();
-        auto x =(int) (rect.x() - rect.width() / 2);
-        auto y = (int) (rect.y()- rect.height() / 2);
-
-        // auto text = to_string(track_id);
-        // auto labelId = outputs_per_frame->getScore();
-        auto color = ColorInLabels[1];
-        rectangle(mat, Rect(x, y, width, height), color, 1, 8, 0);
-        cv::putText(mat, to_string(track_id), cv::Point(x, y), fontFace, fontScale, colorText);
-
-        // auto width = (int)(rect.);
-        // auto height = (int)(rect.Height*ImageHeight);
-        // auto x = (int)((rect.X - rect.Width / 2) *ImageWidth);
-        // auto y = (int)((rect.Y - rect.Height / 2) *ImageHeight);;
-        // auto text = to_string(rect.Veracity);
-        // auto color = ColorInLabels[(int)rect.IdClass];
-        //
-        // rectangle(mat, Rect(x, y, width, height), color, 1, 8, 0);
-        // cv::putText(mat, to_string(rect.TimeStamp), cv::Point(10, ImageHeight-50), fontFace, fontScale, colorText);
-    };
-
-    imshow("Result", mat);
-    waitKey(1);
+    return CreateTrackerManager(30,30,0.2,0.5,0.7,4);
 }
 
 void Test_init_pipeline(const char* model_output, bool isShow = true)
@@ -114,8 +80,9 @@ void Test_init_pipeline(const char* model_output, bool isShow = true)
         throw runtime_error("[Test_init_pipeline] StartPipelineGst");
 
     auto encoder = CreateNvJpgEncoder(cudaStream);
+    auto managerTrack = CreateManagerTrack();
     auto settingPipeline = CreateSettingPipeline();
-    auto pipeline = CreateEnginPipeline(trtEngine, bufferFrameGpu, cudaStream, settingPipeline, encoder);
+    auto pipeline = CreateEnginPipeline(trtEngine, bufferFrameGpu, cudaStream, settingPipeline, encoder,managerTrack);
 
     auto maxCountDetectRectangle = 150;
     auto countImg = 10000;
@@ -124,15 +91,15 @@ void Test_init_pipeline(const char* model_output, bool isShow = true)
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         auto start = chrono::system_clock::now();
 
-        std::vector<byte_track::BYTETracker::STrackPtr> resultNms;
 
-        uint64_t timeStamp;
-        auto res = pipeline->GetResultImages(resultNms, timeStamp);
-
+        auto pipelineOutputData = new PipelineOutputData();
+        auto res = DoInferencePipeline(pipeline, pipelineOutputData);
         if (!res)
         {
+            delete pipelineOutputData;
             continue;
         }
+
 
         countImg--;
 
@@ -145,7 +112,7 @@ void Test_init_pipeline(const char* model_output, bool isShow = true)
         auto endCapture = chrono::system_clock::now();
         info("elapsed time: " +
             to_string(chrono::duration_cast<chrono::microseconds>(endCapture - start).count()) +
-            " resultNms.size: " + " " + to_string(resultNms.size()));
+            " resultNms.size: " + " " + to_string(pipelineOutputData->RectanglesLen));
 
         if (imageFrame->ImageLen == 0)
             throw runtime_error("[Test_init_pipeline] encodedImage->size() == 0");
@@ -153,10 +120,9 @@ void Test_init_pipeline(const char* model_output, bool isShow = true)
         if (isShow)
         {
             Mat image = cv::imdecode(cv::_InputArray(imageFrame->ImagesData, imageFrame->ImageLen), cv::IMREAD_COLOR);
-            // DrawingResults(image, pipelineOutputData);
-            DrawingResultsSTrack(image, resultNms);
+            DrawingResults(image, pipelineOutputData);
         }
-        // delete pipelineOutputData;
+
         delete imageFrame;
     }
 
@@ -202,8 +168,9 @@ void Test_reconnect_pipeline(const char* model_output, bool isShow = false)
     auto connectString = CreateConnectString();
     auto encoder = CreateNvJpgEncoder(cudaStream);
     auto settingPipeline = CreateSettingPipeline();
+    auto managerTrack = CreateManagerTrack();
 
-    auto pipeline = CreateEnginPipeline(trtEngine, bufferFrameGpu, cudaStream, settingPipeline, encoder);
+    auto pipeline = CreateEnginPipeline(trtEngine, bufferFrameGpu, cudaStream, settingPipeline, encoder,managerTrack);
 
     auto countIterReconnect = 1000;
     while (countIterReconnect > 0)
@@ -214,7 +181,7 @@ void Test_reconnect_pipeline(const char* model_output, bool isShow = false)
         if (!resConnect)
             throw runtime_error("[Test_init_pipeline] StartPipelineGst");
 
-        auto countImg = 1000;
+        auto countImg = 10;
         while (countImg > 0)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -272,8 +239,8 @@ int main(int argc, char* argv[])
     auto modelOutput = "../weight/model_001.engine";
 
     // Test_ConverterNetWeight(modelInput, modelOutput);
-    Test_init_pipeline(modelOutput);
+    // Test_init_pipeline(modelOutput);
     // Test_memory_leak( modelOutput);
-    // Test_reconnect_pipeline(modelOutput,true);
+    Test_reconnect_pipeline(modelOutput,true);
     return 0;
 }

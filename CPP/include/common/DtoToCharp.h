@@ -4,6 +4,7 @@
 
 #ifndef DTOTOCHARP_H
 #define DTOTOCHARP_H
+#include <cstdint>
 
 
 struct RectDetect
@@ -18,9 +19,10 @@ public:
         IdClass =-1;
         TimeStamp = 0;
         Veracity = -1;
+        TrackId = -1;
     }
 
-    RectDetect(float x, float y, float width, float height, int idClass, uint64_t timeStamp, float veracity)
+    RectDetect(float x, float y, float width, float height, int idClass, uint64_t timeStamp, float veracity, int trackId)
     {
         X = x;
         Y = y;
@@ -29,6 +31,7 @@ public:
         IdClass = idClass;
         TimeStamp = timeStamp;
         Veracity = veracity;
+        TrackId = trackId;
     }
 
     float X;
@@ -38,6 +41,7 @@ public:
     int IdClass;
     float Veracity;
     uint64_t TimeStamp;
+    int TrackId;
 };
 
 struct PipelineOutputData {

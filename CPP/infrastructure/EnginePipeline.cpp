@@ -5,7 +5,8 @@ EnginePipeline::EnginePipeline(TRTEngine* trtEngine,
                                BufferFrameGpu* bufferFrameGpu,
                                cudaStream_t* streem,
                                SettingPipeline* settingPipeline,
-                               NvJpgEncoder* encoder)
+                               NvJpgEncoder* encoder,
+                               TrackerManager* trackerManager)
 {
     if (!trtEngine || !bufferFrameGpu || !streem || !encoder)
         throw std::runtime_error("[ThermalPipeline::ThermalPipeline] Null reference exception");
@@ -16,6 +17,7 @@ EnginePipeline::EnginePipeline(TRTEngine* trtEngine,
     _streem = streem;
     _settingPipeline = settingPipeline;
     _encoder = encoder;
+    _trackerManager = trackerManager;
 
     auto channel = 1;
     _imageBackground = FrameGpu<
@@ -23,14 +25,14 @@ EnginePipeline::EnginePipeline(TRTEngine* trtEngine,
 }
 
 
-bool EnginePipeline::ConverterDetection(vector<Detection>& vector)
+bool EnginePipeline::ConverterDetection(vector<RectDetect>& vector)
 {
     for (auto& det : vector)
     {
-        det.BBox[2] = det.BBox[2] / _settingPipeline->WidthImgMl; //width
-        det.BBox[3] = det.BBox[3] / _settingPipeline->HeightImgMl; //heigt
-        det.BBox[0] = det.BBox[0] / _settingPipeline->WidthImgMl; //x center
-        det.BBox[1] = det.BBox[1] / _settingPipeline->HeightImgMl; //y center
+        det.Width = det.Width / _settingPipeline->WidthImgMl;
+        det.Height = det.Height / _settingPipeline->HeightImgMl;
+        det.X = det.X / _settingPipeline->WidthImgMl;
+        det.Y = det.Y / _settingPipeline->HeightImgMl;
     }
     return true;
 }
@@ -76,7 +78,7 @@ void EnginePipeline::UpdateBackground()
 }
 
 
-bool EnginePipeline::GetResultImages( std::vector<byte_track::BYTETracker::STrackPtr>& resultNms, uint64_t& timeStamp)
+bool EnginePipeline::GetResultImages(vector<RectDetect>& retRectDetect)
 {
     try
     {
@@ -88,8 +90,7 @@ bool EnginePipeline::GetResultImages( std::vector<byte_track::BYTETracker::STrac
 
         unique_ptr<FrameGpu<Npp8u>> frameUnPrt(frame);
 
-        //TODO: добавить проверку по времени...
-        timeStamp = frameUnPrt->Timestamp();
+        auto timeStamp = frameUnPrt->Timestamp();
 
         UpdateCurrentImg(frameUnPrt.get());
         UpdateCurrentTimeStamp(timeStamp);
@@ -102,44 +103,13 @@ bool EnginePipeline::GetResultImages( std::vector<byte_track::BYTETracker::STrac
             return false;
 
 
-        // vector<Detection> sortPeople;
-        // ranges::copy_if(srcResult, std::back_inserter(sortPeople),
-        //                 [](Detection x) { return x.ClassId == 0; });
+        auto resTrackerManager = _trackerManager->Predict(srcResult, timeStamp, retRectDetect);
+        if(!resTrackerManager)
+            return false;
 
-        std::vector<byte_track::Object> objects;
-        for (auto& det : srcResult)
-        {
-            auto x = det.BBox[0];
-            auto y = det.BBox[1];
-            auto width = det.BBox[2];
-            auto height = det.BBox[3];
-            auto prob = det.Conf;
-            objects.emplace_back(byte_track::Rect(x, y, width, height), det.ClassId, prob);
-        }
-
-      resultNms =  _tracker->update(objects);
-
-
-
-        // auto restRects = vector<Detection>();
-        // for (auto& outputs_per_frame : resTracker)
-        // {
-        //     const auto &rect = outputs_per_frame->getRect();
-        //
-        //     vector<float> bbox = {rect.x(), rect.y(), rect.width(), rect.height()};
-        //     // auto x = rect.x;
-        //     // auto y = rect;
-        //     // auto width = det.BBox[2];
-        //     // auto height = det.BBox[3];
-        //     // auto prob = det.Conf;
-        //     restRects.emplace_back(Detection(bbox,1,1));
-        // }
-
-        // resultNms = sortPeople;
-        // auto resConvertRect = ConverterDetection(resultNms);
-
-        // if (!resConvertRect)
-        //     return false;
+        auto resConvertRect = ConverterDetection(retRectDetect);
+        if(!resConvertRect)
+            return false;
 
         return true;
     }

@@ -112,9 +112,9 @@ std::vector<float> ReadFileToVector(const std::string &filename) {
 //}
 
 map<int, Scalar> ColorInLabels = {
-    {0, Scalar(255, 0, 0)},
+    {0, Scalar(0, 0, 255)},
     {1, Scalar(0, 255, 0)},
-    {2, Scalar(0, 0, 255)},
+    {2, Scalar(255, 0, 0)},
     {3, Scalar(255, 255, 0)},
     {4, Scalar(255, 0, 255)}
 };
@@ -135,9 +135,11 @@ void DrawingResults(Mat mat, PipelineOutputData * pipelineOutputData)
         auto y = (int)((rect.Y - rect.Height / 2) *ImageHeight);;
         auto text = to_string(rect.Veracity);
         auto color = ColorInLabels[(int)rect.IdClass];
+        auto track_id = rect.TrackId;
 
-        rectangle(mat, Rect(x, y, width, height), color, 1, 8, 0);
-        cv::putText(mat, to_string(rect.TimeStamp), cv::Point(10, ImageHeight-50), fontFace, fontScale, colorText);
+        rectangle(mat, cv::Rect(x, y, width, height), color, 1, 8, 0);
+        putText(mat, to_string(rect.TimeStamp), cv::Point(10, ImageHeight-50), fontFace, fontScale, colorText);
+        putText(mat, to_string(track_id), cv::Point(x, y), fontFace, fontScale, color);
     };
 
     imshow("Result", mat);
@@ -159,7 +161,7 @@ void DrawingResults(Mat mat, vector<Detection> rects,uint64_t timeStamp)
         auto text = to_string(rect.Conf);
         auto color = ColorInLabels[(int)rect.ClassId];
 
-        rectangle(mat, Rect(x, y, width, height), color, 1, 8, 0);
+        rectangle(mat, cv::Rect(x, y, width, height), color, 1, 8, 0);
         cv::putText(mat, to_string(timeStamp), cv::Point(10, ImageHeight-50), fontFace, fontScale, colorText);
     };
 
