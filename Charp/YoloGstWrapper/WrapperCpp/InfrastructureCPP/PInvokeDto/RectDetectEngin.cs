@@ -24,8 +24,11 @@ public struct RectDetectEngin
     public float Veracity;
     
     [FieldOffset(24)]
-    public ulong TimeStamp;
+    public int TrackId;
+    
+    [FieldOffset(28)]
+    public uint TimeStamp;
 
-  
+
     
 }

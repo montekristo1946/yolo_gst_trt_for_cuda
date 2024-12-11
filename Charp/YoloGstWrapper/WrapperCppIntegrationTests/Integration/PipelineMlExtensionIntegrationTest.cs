@@ -7,22 +7,21 @@ namespace WrapperCppTests.Integration;
 
 public class PipelineMlExtensionIntegrationTest
 {
-    public void FullPass()
+    private TrackerConfig CreateTrackerConfig()
     {
-        var connection = "filesrc location=/mnt/Disk_D/Document/Teplovisors/Dataset/010/11.09.2024_001.avi " +
-                         "! avidemux " +
-                         "! nvv4l2decoder " +
-                         "! nvvideoconvert nvbuf-memory-type=3 " +
-                         "! video/x-raw(memory:NVMM)" +
-                         "! appsink name=mysink sync=true";
-
-        // var connection = "rtspsrc location=rtsp://login:password@192.168.1.15:554 latency=1000 " +
-        //                  "! rtph264depay " +
-        //                  "! nvv4l2decoder " +
-        //                  "! nvvideoconvert nvbuf-memory-type=3 " +
-        //                  "! video/x-raw(memory:NVMM) " +
-        //                  "! appsink name=mysink sync=true";
-
+        return new TrackerConfig()
+        {
+            FrameRate = 30,
+            TrackBuffer = 30,
+            TrackThresh = 0.2F,
+            HighThresh = 0.5F,
+            MathThresh = 0.7F,
+            MaxTrack = 4
+        };
+    }
+    
+    private static YoloConfigs CreateYoloConfigs(string connection)
+    {
         var config = new YoloConfigs()
         {
             EnginePath = "/mnt/Disk_C/git/yolo_gst_trt_for_cuda/CPP/weight/model_001.engine",
@@ -36,8 +35,36 @@ public class PipelineMlExtensionIntegrationTest
             ConnetctionString = connection,
             PathLogFile = "./Logs/PipelineMl_FullPass.txt"
         };
+        return config;
+    }
+    private static string CreateConnection()
+    {
+        var connection = "filesrc location=/mnt/Disk_D/Document/Teplovisors/Dataset/010/09.09.2024_002.avi " +
+                         "! avidemux " +
+                         "! nvv4l2decoder " +
+                         "! nvvideoconvert nvbuf-memory-type=3 " +
+                         "! video/x-raw(memory:NVMM)" +
+                         "! appsink name=mysink sync=true";
+        
+        // var connection = "rtspsrc location=rtsp://login:password@192.168.1.15:554 latency=1000 " +
+        //                  "! rtph264depay " +
+        //                  "! nvv4l2decoder " +
+        //                  "! nvvideoconvert nvbuf-memory-type=3 " +
+        //                  "! video/x-raw(memory:NVMM) " +
+        //                  "! appsink name=mysink sync=true";
+        return connection;
+    }
 
-        var pipelineMl = new PipelineMlExtension(config);
+    public void FullPass()
+    {
+        var connection = CreateConnection();
+
+        var yoloConfigs = CreateYoloConfigs(connection);
+        var trackerConfig = CreateTrackerConfig();
+
+        var pipelineMl = new PipelineMlExtension(yoloConfigs,trackerConfig);
+        pipelineMl.StartPipelineGst(yoloConfigs.ConnetctionString);
+        
 
         var stopwatch = new Stopwatch();
         var interation = 10;
@@ -73,6 +100,8 @@ public class PipelineMlExtensionIntegrationTest
 
         pipelineMl.Dispose();
     }
+
+   
 
 
     public void TestMemoryLeek()

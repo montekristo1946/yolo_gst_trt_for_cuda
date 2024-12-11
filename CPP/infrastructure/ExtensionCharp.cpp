@@ -251,12 +251,12 @@ extern "C" MYLIB_EXPORT NvJpgEncoder* CreateNvJpgEncoder(CudaStream* cudaStream)
     return nullptr;
 }
 
-extern "C" MYLIB_EXPORT TrackerManager* CreateTrackerManager(  const int frameRate,
-    const int trackBuffer,
-    const float trackThresh,
-    const float highThresh,
-    const float matchThresh,
-    const int maxNumTrackers)
+extern "C" MYLIB_EXPORT TrackerManager* CreateTrackerManager(const int frameRate,
+                                                             const int trackBuffer,
+                                                             const float trackThresh,
+                                                             const float highThresh,
+                                                             const float matchThresh,
+                                                             const int maxNumTrackers)
 {
     info("[CreateTrackerManager] Init TrackerManager");
     try
@@ -292,7 +292,7 @@ extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine
                                                             NvJpgEncoder* encoder,
                                                             TrackerManager* trackerManager)
 {
-    if(!trtEngine || !bufferFrameGpu || !cudaStream || !settingPipeline || !encoder || !trackerManager)
+    if (!trtEngine || !bufferFrameGpu || !cudaStream || !settingPipeline || !encoder || !trackerManager)
     {
         error("[CreateEnginPipeline] Null reference exception");
         return nullptr;
@@ -332,7 +332,6 @@ extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine
 
     return nullptr;
 }
-
 
 
 extern "C" MYLIB_EXPORT bool StartPipelineGst(GstDecoder* gstDecoder, const char* connectString)
@@ -417,8 +416,7 @@ extern "C" MYLIB_EXPORT bool DoInferencePipeline(EnginePipeline* enginePipeline,
 {
     try
     {
-
-       if (!enginePipeline || !pipelineOutputData)
+        if (!enginePipeline || !pipelineOutputData)
         {
             SlowloggingError("[DoInferencePipeline] Bad Input Data ");
             return false;
@@ -432,25 +430,11 @@ extern "C" MYLIB_EXPORT bool DoInferencePipeline(EnginePipeline* enginePipeline,
             return false;
         }
 
-
         auto* arr = new RectDetect[resultNms.size()];
         copy(resultNms.begin(), resultNms.end(), arr);
 
-        // for (int i = 0; i < resultNms.size(); ++i)
-        // {
-        //     auto rect = &arr[i];
-        //     rect->X = resultNms[i].X;
-        //     rect->Y = resultNms[i].BBox[1];
-        //     rect->Width = resultNms[i].BBox[2];
-        //     rect->Height = resultNms[i].BBox[3];
-        //     rect->IdClass = resultNms[i].ClassId;
-        //     rect->TimeStamp = timeStamp;
-        //     rect->Veracity = resultNms[i].Conf;
-        // }
-
         pipelineOutputData->RectanglesLen = resultNms.size();
         pipelineOutputData->Rectangles = arr;
-
 
         return true;
     }
@@ -495,4 +479,3 @@ extern "C" MYLIB_EXPORT bool GetCurrenImage(EnginePipeline* enginePipeline, Imag
 
     return false;
 }
-

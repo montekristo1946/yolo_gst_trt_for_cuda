@@ -51,7 +51,7 @@ bool GstBufferManager::Enqueue(GstBuffer* gstBuffer, GstCaps* gstCaps)
         _isShowFirstDebugMessage = false;
     }
 
-    uint64_t timestamp = 0;
+    uint32_t timestamp = 0;
 
 
     GstMapInfo map;
@@ -73,7 +73,7 @@ bool GstBufferManager::Enqueue(GstBuffer* gstBuffer, GstCaps* gstCaps)
     if (GST_BUFFER_DTS_IS_VALID(gstBuffer) || GST_BUFFER_PTS_IS_VALID(gstBuffer))
     {
         auto timestampTemp = GST_BUFFER_DTS_OR_PTS(gstBuffer);
-        timestamp  =  timestampTemp>0 ? timestampTemp : 1;
+        timestamp  =  timestampTemp>0 ? timestampTemp/1000000 : 1; //ms seconds
     }
 
     auto frame = CreateImage(infoData->surfaceList[0]);

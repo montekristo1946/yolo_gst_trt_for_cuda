@@ -37,7 +37,9 @@ public record RectDetect()
     /// <summary>
     ///     TimeStamp images
     /// </summary>
-    public ulong TimeStamp { get; init; } = 0;
+    public uint TimeStamp { get; init; } = 0;
+    
+    public int TrackId { get; set; }= -1;
 
     public static RectDetect RectDetectEnginToRectDetect(RectDetectEngin rectDetectEngin)
     {
@@ -49,7 +51,8 @@ public record RectDetect()
             Height = rectDetectEngin.Height,
             IdClass = rectDetectEngin.IdClass,
             Veracity = rectDetectEngin.Veracity,
-            TimeStamp = rectDetectEngin.TimeStamp
+            TimeStamp = rectDetectEngin.TimeStamp,
+            TrackId = rectDetectEngin.TrackId
         };
     }
 }

@@ -40,8 +40,9 @@ public:
     float Height;
     int IdClass;
     float Veracity;
-    uint64_t TimeStamp;
     int TrackId;
+    uint32_t   TimeStamp;
+
 };
 
 struct PipelineOutputData {

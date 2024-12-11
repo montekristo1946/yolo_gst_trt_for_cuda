@@ -116,6 +116,8 @@ TrackerManager::~TrackerManager()
 
     if (_trackers)
         delete _trackers;
+
+    info("[TrackerManager::~TrackerManage] Call destructor");
 }
 
 void TrackerManager::CraeteTreackers(int cuntTreackers)
