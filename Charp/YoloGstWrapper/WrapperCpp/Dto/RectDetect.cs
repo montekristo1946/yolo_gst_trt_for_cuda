@@ -39,7 +39,10 @@ public record RectDetect()
     /// </summary>
     public uint TimeStamp { get; init; } = 0;
     
-    public int TrackId { get; set; }= -1;
+    /// <summary>
+    ///     Track object in images
+    /// </summary>
+    public int TrackId { get; init; }= -1;
 
     public static RectDetect RectDetectEnginToRectDetect(RectDetectEngin rectDetectEngin)
     {
