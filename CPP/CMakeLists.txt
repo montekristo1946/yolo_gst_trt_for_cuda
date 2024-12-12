@@ -93,6 +93,16 @@ find_library_create_target(npps "npps" SHARED ${CUDA_LIB_DIR})
 
 set(EIGEN_VERSION 3.3)
 find_package(Eigen3 ${EIGEN_VERSION} QUIET)
+if(NOT EIGEN3_FOUND)
+    set(BUILD_TESTING OFF CACHE INTERNAL "")
+    FetchContent_Declare(eigen
+            GIT_REPOSITORY  https://gitlab.com/libeigen/eigen.git
+            GIT_TAG         ${EIGEN_VERSION}
+            GIT_SHALLOW     ON)
+    FetchContent_MakeAvailable(eigen)
+    unset(BUILD_TESTING CACHE)
+endif()
+
 
 set(ALL_LIB  ${TensorRT_LIBS} cudart libnvjpeg ${GST_LIBS} nppc nppig nppicc nppial nppisu npps Eigen3::Eigen)
 set(ALL_INCLUDE_LIB ${OpenCV_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR} )
