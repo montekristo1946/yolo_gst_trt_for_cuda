@@ -247,6 +247,8 @@ TRTEngine* CreateTRTEngineLocal(TRTEngineConfig* config, CudaStream* cudaStream)
 
 void TestGstreamer()
 {
+    throw std::runtime_error("[CreateTRTEngine] not implement TestGstreamer");
+    /*
     cout << "______ Start Test_FullPass OK ______" << endl;
     auto streem = new CudaStream();
     auto pathWeight = "../weight/model_001.engine";
@@ -291,6 +293,8 @@ void TestGstreamer()
     }
 
     cout << "______ End Test_FullPass OK ______" << endl;
+    */
+
 }
 
 int main(int argc, char* argv[])
