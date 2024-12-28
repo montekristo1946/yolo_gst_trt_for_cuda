@@ -9,24 +9,30 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_STANDARD 20)
 set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
 set(CMAKE_CUDA_ARCHITECTURES "86") #set you architecture.
+set(BUILD_OPENCV_FUNCTIONS ON) #set use opencv functions
 
-message(STATUS "test " ${CMAKE_C_COMPILER})
 
-project(YoloGstForGPU VERSION 1.0  DESCRIPTION "YoloGstForGPU" LANGUAGES CXX CUDA)
+
+project(YoloGstForGPU VERSION 1.0 DESCRIPTION "YoloGstForGPU" LANGUAGES CXX CUDA)
 
 include_directories("${PROJECT_SOURCE_DIR}/spdlog/include")
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/include/common")
 include_directories("${PROJECT_SOURCE_DIR}/videogst/include")
+
 #cuda
 include_directories(/usr/local/cuda/include)
 link_directories(/usr/local/cuda/lib64)
 # tensorrt
 include_directories(/usr/include/x86_64-linux-gnu)
 link_directories(/usr/lib/x86_64-linux-gnu)
-# opencv
-include_directories(/usr/local/include/opencv4)
-link_directories(/usr/local/lib)
+
+if (BUILD_OPENCV_FUNCTIONS)
+    include_directories(/usr/local/include/opencv4)
+    set(OpenCV_LIB_DIR "/usr/local/lib")
+    link_directories(/usr/local/lib)
+    FindOpenCvCustom(OpenCV_LIBS ${OpenCV_LIB_DIR})
+endif ()
 
 # Gststreamer
 include_directories(/usr/include/gstreamer-1.0/gst)
@@ -37,10 +43,10 @@ include_directories(/usr/include/gstreamer-1.0/)
 include_directories(/usr/include/gstreamer-1.0/gst/app)
 
 
-set(TENSORRT_INCLUDE_DIR "/usr/include/x86_64-linux-gnu" )
+set(TENSORRT_INCLUDE_DIR "/usr/include/x86_64-linux-gnu")
 set(TRT_LIB_DIR "/usr/lib/x86_64-linux-gnu")
-set(CUDA_LIB_DIR "/usr/local/cuda/lib64" )
-set(OpenCV_LIB_DIR "/usr/local/lib" )
+set(CUDA_LIB_DIR "/usr/local/cuda/lib64")
+
 set(GST_LIB_DIR "/lib/x86_64-linux-gnu/")
 set(GLIB_LIB_DIR "/usr/lib/x86_64-linux-gnu")
 set(CUDA_TARGET_LIB "/usr/local/cuda-12.6/targets/x86_64-linux/lib")
@@ -70,14 +76,13 @@ set(LibTrtStatic
 #cuda
 find_library_create_target(cudart "cudart" SHARED ${CUDA_LIB_DIR})
 find_library_create_target(libnvjpeg "nvjpeg" SHARED ${CUDA_LIB_DIR})
-#opencv
-FindOpenCvCustom(OpenCV_LIBS ${OpenCV_LIB_DIR})
+
 
 # Gststreamer
 find_library_create_target(gobject "libgobject-2.0.so" SHARED ${GST_LIB_DIR})
 find_library_create_target(gstreamer "libgstreamer-1.0.so" SHARED ${GST_LIB_DIR})
 find_library_create_target(gstapp "libgstapp-1.0.so" SHARED ${GST_LIB_DIR})
-find_library_create_target(gstpbutils "libgstpbutils-1.0.so" SHARED ${GST_LIB_DIR} )
+find_library_create_target(gstpbutils "libgstpbutils-1.0.so" SHARED ${GST_LIB_DIR})
 find_library_create_target(gstsdp "libgstsdp-1.0.so" SHARED ${GST_LIB_DIR})
 find_library_create_target(glib "libglib-2.0.so" SHARED ${GLIB_LIB_DIR})
 set(GST_LIBS gobject glib gstreamer gstapp gstpbutils gstsdp)
@@ -95,8 +100,8 @@ set(EIGEN_VERSION 3.3)
 find_package(Eigen3 ${EIGEN_VERSION} QUIET)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-set(ALL_LIB  ${TensorRT_LIBS} cudart libnvjpeg ${GST_LIBS} nppc nppig nppicc nppial nppisu npps Eigen3::Eigen)
-set(ALL_INCLUDE_LIB ${OpenCV_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR} )
+set(ALL_LIB ${TensorRT_LIBS} cudart libnvjpeg ${GST_LIBS} nppc nppig nppicc nppial nppisu npps Eigen3::Eigen)
+set(ALL_INCLUDE_LIB ${OpenCV_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR})
 
 file(GLOB_RECURSE SRCS
         ${PROJECT_SOURCE_DIR}/infrastructure/*.cpp
@@ -147,13 +152,12 @@ add_library(GstreamerLib STATIC
         ${PROJECT_SOURCE_DIR}/infrastructure/EnginePipeline.cpp
 
 )
-target_include_directories(GstreamerLib PUBLIC  ${GST_LIBS})
-target_link_libraries(GstreamerLib PUBLIC stdc++fs ${GST_LIBS}  cudart)
-
+target_include_directories(GstreamerLib PUBLIC ${GST_LIBS})
+target_link_libraries(GstreamerLib PUBLIC stdc++fs ${GST_LIBS} cudart)
 
 
 # ExtensionCharpStatic --------------------------------------------------------------------------------------------------------------
-add_library(ExtensionCharpStatic STATIC ${SRCS} )
+add_library(ExtensionCharpStatic STATIC ${SRCS})
 target_include_directories(ExtensionCharpStatic PUBLIC ${ALL_INCLUDE_LIB})
 target_link_libraries(ExtensionCharpStatic PUBLIC ${ALL_LIB} stdc++fs ${LibTrtStatic})
 
@@ -162,7 +166,7 @@ target_link_libraries(ExtensionCharpStatic PUBLIC ${ALL_LIB} stdc++fs ${LibTrtSt
 add_library(ExtensionCharp SHARED ${SRCS}
         infrastructure/TrackerManager.cpp)
 target_include_directories(ExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
-target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs  )
+target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs)
 
 # TestRunProject --------------------------------------------------------------------------------------------------------------
 #add_executable(TestRunProject ${PROJECT_SOURCE_DIR}/tests/TestRunProject.cpp
@@ -174,10 +178,12 @@ target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs  )
 
 
 # TestExtensionCHarp --------------------------------------------------------------------------------------------------------------
-add_executable(TestExtensionCharp ${PROJECT_SOURCE_DIR}/tests/TestExtensionCharp.cpp
-        tests/Helper.hpp)
-target_include_directories(TestExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
-target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharpStatic  ${OpenCV_LIBS} )
+if (BUILD_OPENCV_FUNCTIONS)
+    add_executable(TestExtensionCharp ${PROJECT_SOURCE_DIR}/tests/TestExtensionCharp.cpp
+            tests/Helper.hpp)
+    target_include_directories(TestExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
+    target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharpStatic ${OpenCV_LIBS})
+endif ()
 
 ## TestTRTEngine --------------------------------------------------------------------------------------------------------------
 #add_executable(TestTRTEngine
@@ -185,11 +191,12 @@ target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharpStatic  ${OpenCV_L
 #        tests/Helper.hpp)
 #target_link_libraries(TestTRTEngine PUBLIC TRTLayer GstreamerLib NvJpgEncoderlib )
 
-
-add_executable(TestNppFunction
-        ${PROJECT_SOURCE_DIR}/tests/NppFunctionTest.cpp
-        ${PROJECT_SOURCE_DIR}/infrastructure/NppFunction.cpp)
-target_link_libraries(TestNppFunction PUBLIC ${ALL_LIB} ${OpenCV_LIBS} stdc++fs nppc nppig nppicc nppial nppisu npps)
+if (BUILD_OPENCV_FUNCTIONS)
+    add_executable(TestNppFunction
+            ${PROJECT_SOURCE_DIR}/tests/TestNppFunction.cpp
+            ${PROJECT_SOURCE_DIR}/infrastructure/NppFunction.cpp)
+    target_link_libraries(TestNppFunction PUBLIC ${ALL_LIB} ${OpenCV_LIBS} stdc++fs nppc nppig nppicc nppial nppisu npps)
+endif ()
 
 # TestGstreamerLib --------------------------------------------------------------------------------------------------------------
 #add_executable(TestGstDecoder  ${PROJECT_SOURCE_DIR}/tests/TestGstDecoder.cpp)
@@ -220,3 +227,10 @@ target_link_libraries(TestNppFunction PUBLIC ${ALL_LIB} ${OpenCV_LIBS} stdc++fs 
 #add_executable(TestNvJpgEncoder ${PROJECT_SOURCE_DIR}/tests/TestNvJpgEncoder.cpp)
 #target_include_directories(TestNvJpgEncoder PUBLIC ${ALL_INCLUDE_LIB})
 #target_link_libraries(TestNvJpgEncoder PUBLIC ${ALL_LIB} stdc++fs NvJpgEncoderlib)
+
+#TestPointInPolygon --------------------------------------------------------------------------------------------------------------
+add_executable(TestPointInPolygon ${PROJECT_SOURCE_DIR}/tests/TestPointInPolygon.cpp)
+target_include_directories(TestPointInPolygon PUBLIC ${ALL_INCLUDE_LIB})
+target_link_libraries(TestPointInPolygon PUBLIC ${ALL_LIB} stdc++fs)
+
+

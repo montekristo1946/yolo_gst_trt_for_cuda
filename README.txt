@@ -114,5 +114,13 @@ sudo apt-get install -y ./deepstream-7.1_7.1.0-1_amd64.deb
 cd /usr/lib/x86_64-linux-gnu && ln -s libyaml-cpp.so.0.7 /usr/lib/x86_64-linux-gnu/libyaml-cpp.0.8.0
 
 
--------- Install Dependencies on Docker images -------------------------------
+-------- build yolo_gst_trt_for_cuda -------------------------------
 
+cd /mnt/Disk_C/git/yolo_gst_trt_for_cuda/CPP
+mkdir build && cd build
+
+cmake -D CMAKE_BUILD_TYPE=RELEASE \
+-D CMAKE_CUDA_ARCHITECTURES=86 \
+-D BUILD_OPENCV_FUNCTIONS=ON ..
+
+make -j 12

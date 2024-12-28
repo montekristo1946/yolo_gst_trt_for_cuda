@@ -183,7 +183,7 @@ void TestAddWeightedOnVideo(int inter)
             break;
         TestAddWeighted(frame, frameBackground,nppFunction);
         imshow("w", frame);
-        waitKey(1); // waits to display frame
+        waitKey(25); // waits to display frame
     }
     std::cout << " --- TestAddWeightedOnVideo End ok  ---" << std::endl;
 }
@@ -245,9 +245,9 @@ int main(int argc, char* argv[])
     auto logPathFileString = "./Logs/NppFunctionTest.log";
     auto mainLogger = MainLogger(logPathFileString);
 
-    // TestResize(10, true);
+    // TestResize(1000, true);
     // TestConvertToGray(10, true);
-    TestAbsDiff(1000000, true);
-    // TestAddWeightedOnVideo(10);
+    // TestAbsDiff(1000000, true);
+    TestAddWeightedOnVideo(10000);
     return 0;
 }
