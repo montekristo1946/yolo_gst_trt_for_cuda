@@ -233,6 +233,37 @@ void Test_reconnect_pipeline(const char* model_output, bool isShow = false)
     printf("______  Test_reconnect_pipeline OK______  \n");
 }
 
+// PolygonsSettingsExternal* CreateExportDataPolygons()
+// {
+//     auto points1 = new Point[8]
+//     {
+//         {0, 0.4f, 0.2f},
+//         {1, 0.6f, 0.2f},
+//         {2, 0.8f, 0.4f},
+//         {3, 0.8f, 0.6f},
+//         {4, 0.6f, 0.8f},
+//         {5, 0.4f, 0.8f},
+//         {6, 0.2f, 0.6f},
+//         {7, 0.2f, 0.4f},
+//     };
+//
+//     auto points2 = new Point[4]
+//     {
+//         {0, 0.4f, 0.2f},
+//         {1, 0.6f, 0.2f},
+//         {2, 0.6f, 0.8f},
+//         {3, 0.4f, 0.8f},
+//     };
+//
+//     PolygonExternal* polygons = new PolygonExternal[2]
+//     {
+//         {0,     points1, 8},
+//         {1,     points2 , 4},
+//     };
+//
+//     return new PolygonsSettingsExternal(polygons, 2);
+// }
+
 int main(int argc, char* argv[])
 {
     auto modelInput = "../weight/model_001.onnx";

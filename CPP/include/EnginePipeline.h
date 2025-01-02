@@ -50,10 +50,5 @@ private:
     NvJpgEncoder* _encoder  = nullptr;
     shared_ptr<logger> _logger = get("MainLogger");
     NppFunction * _nppFunctions = new NppFunction();
-
-    // byte_track::BYTETracker * _tracker = new byte_track::BYTETracker(75, 75, 0.2, 0.5, 0.7);
-
-
-
 };
 #endif //THERMALPIPLINE_H

@@ -25,6 +25,7 @@ EnginePipeline::EnginePipeline(TRTEngine* trtEngine,
 }
 
 
+//Конвертим в относительные координаты
 bool EnginePipeline::ConverterDetection(vector<RectDetect>& vector)
 {
     for (auto& det : vector)

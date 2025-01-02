@@ -104,56 +104,56 @@ set(ALL_LIB ${TensorRT_LIBS} cudart libnvjpeg ${GST_LIBS} nppc nppig nppicc nppi
 set(ALL_INCLUDE_LIB ${OpenCV_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR})
 
 file(GLOB_RECURSE SRCS
+        ${PROJECT_SOURCE_DIR}/include/common/*.h
+        ${PROJECT_SOURCE_DIR}/include/*.h
         ${PROJECT_SOURCE_DIR}/infrastructure/*.cpp
         ${PROJECT_SOURCE_DIR}/videogst/*.cpp
-        ${PROJECT_SOURCE_DIR}/include/*.h
-        ${PROJECT_SOURCE_DIR}/include/common/*.h
         ${PROJECT_SOURCE_DIR}/infrastructure/*.cu
         ${PROJECT_SOURCE_DIR}/videogst/*.cu)
 
 
 # yololayer --------------------------------------------------------------------------------------------------------------
-add_library(YoloToolsGPU STATIC
-        ${PROJECT_SOURCE_DIR}/infrastructure/YoloToolsGPU.cu
-        ${PROJECT_SOURCE_DIR}/include/CudaStream.h
-        ${PROJECT_SOURCE_DIR}/videogst/include/CudaUtility.h
-)
-target_link_libraries(YoloToolsGPU PUBLIC ${ALL_LIB} stdc++fs)
+#add_library(YoloToolsGPU STATIC
+#        ${PROJECT_SOURCE_DIR}/infrastructure/YoloToolsGPU.cu
+#        ${PROJECT_SOURCE_DIR}/include/CudaStream.h
+#        ${PROJECT_SOURCE_DIR}/videogst/include/CudaUtility.h
+#)
+#target_link_libraries(YoloToolsGPU PUBLIC ${ALL_LIB} stdc++fs)
 
 #TRTLayer --------------------------------------------------------------------------------------------------------------
-add_library(TRTLayer STATIC
-        ${PROJECT_SOURCE_DIR}/infrastructure/BuilderOnnx.cpp
-        ${PROJECT_SOURCE_DIR}/infrastructure/TRTEngine.cpp
-)
-target_include_directories(TRTLayer PUBLIC ${ALL_INCLUDE_LIB})
-target_link_libraries(TRTLayer PUBLIC ${ALL_LIB} stdc++fs YoloToolsGPU)
+#add_library(TRTLayer STATIC
+#        ${PROJECT_SOURCE_DIR}/infrastructure/BuilderOnnx.cpp
+#        ${PROJECT_SOURCE_DIR}/infrastructure/TRTEngine.cpp
+#)
+#target_include_directories(TRTLayer PUBLIC ${ALL_INCLUDE_LIB})
+#target_link_libraries(TRTLayer PUBLIC ${ALL_LIB} stdc++fs YoloToolsGPU)
 
 #NvJpgEncoderlib --------------------------------------------------------------------------------------------------------------
-add_library(NvJpgEncoderlib STATIC
-        ${PROJECT_SOURCE_DIR}/include/NvJpgEncoder.h
-        ${PROJECT_SOURCE_DIR}/infrastructure/NvJpgEncoder.cpp
-)
-target_include_directories(NvJpgEncoderlib PUBLIC ${ALL_INCLUDE_LIB})
-target_link_libraries(NvJpgEncoderlib PUBLIC ${ALL_LIB} stdc++fs)
+#add_library(NvJpgEncoderlib STATIC
+#        ${PROJECT_SOURCE_DIR}/include/NvJpgEncoder.h
+#        ${PROJECT_SOURCE_DIR}/infrastructure/NvJpgEncoder.cpp
+#)
+#target_include_directories(NvJpgEncoderlib PUBLIC ${ALL_INCLUDE_LIB})
+#target_link_libraries(NvJpgEncoderlib PUBLIC ${ALL_LIB} stdc++fs)
 
 #GstreamerLib --------------------------------------------------------------------------------------------------------------
-add_library(GstreamerLib STATIC
-        ${PROJECT_SOURCE_DIR}/videogst/GstUtility.cpp
-        ${PROJECT_SOURCE_DIR}/videogst/GstDecoder.cpp
-        ${PROJECT_SOURCE_DIR}/videogst/GstBufferManager.cpp
-        ${PROJECT_SOURCE_DIR}/include/common/FrameGpu.h
-        ${PROJECT_SOURCE_DIR}/infrastructure/BufferFrameGpu.cpp
-        ${PROJECT_SOURCE_DIR}/videogst/CudaYUV_NV12.cu
-        ${PROJECT_SOURCE_DIR}/videogst/include/CudaYUV_NV12.h
-        ${PROJECT_SOURCE_DIR}/videogst/include/cudaVector.h
-        ${PROJECT_SOURCE_DIR}/include/common/magic_enum.hpp
-        ${PROJECT_SOURCE_DIR}/include/EnginePipeline.h
-        ${PROJECT_SOURCE_DIR}/include/SettingPipeline.h
-        ${PROJECT_SOURCE_DIR}/infrastructure/EnginePipeline.cpp
-
-)
-target_include_directories(GstreamerLib PUBLIC ${GST_LIBS})
-target_link_libraries(GstreamerLib PUBLIC stdc++fs ${GST_LIBS} cudart)
+#add_library(GstreamerLib STATIC
+#        ${PROJECT_SOURCE_DIR}/videogst/GstUtility.cpp
+#        ${PROJECT_SOURCE_DIR}/videogst/GstDecoder.cpp
+#        ${PROJECT_SOURCE_DIR}/videogst/GstBufferManager.cpp
+#        ${PROJECT_SOURCE_DIR}/include/common/FrameGpu.h
+#        ${PROJECT_SOURCE_DIR}/infrastructure/BufferFrameGpu.cpp
+#        ${PROJECT_SOURCE_DIR}/videogst/CudaYUV_NV12.cu
+#        ${PROJECT_SOURCE_DIR}/videogst/include/CudaYUV_NV12.h
+#        ${PROJECT_SOURCE_DIR}/videogst/include/cudaVector.h
+#        ${PROJECT_SOURCE_DIR}/include/common/magic_enum.hpp
+#        ${PROJECT_SOURCE_DIR}/include/EnginePipeline.h
+#        ${PROJECT_SOURCE_DIR}/include/SettingPipeline.h
+#        ${PROJECT_SOURCE_DIR}/infrastructure/EnginePipeline.cpp
+#
+#)
+#target_include_directories(GstreamerLib PUBLIC ${GST_LIBS})
+#target_link_libraries(GstreamerLib PUBLIC stdc++fs ${GST_LIBS} cudart)
 
 
 # ExtensionCharpStatic --------------------------------------------------------------------------------------------------------------
@@ -163,8 +163,7 @@ target_link_libraries(ExtensionCharpStatic PUBLIC ${ALL_LIB} stdc++fs ${LibTrtSt
 
 
 # ExtensionCharp --------------------------------------------------------------------------------------------------------------
-add_library(ExtensionCharp SHARED ${SRCS}
-        infrastructure/TrackerManager.cpp)
+add_library(ExtensionCharp SHARED ${SRCS})
 target_include_directories(ExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
 target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs)
 
@@ -176,15 +175,6 @@ target_link_libraries(ExtensionCharp PUBLIC ${ALL_LIB} stdc++fs)
 #target_include_directories(TestRunProject PUBLIC ${ALL_INCLUDE_LIB})
 #target_link_libraries(TestRunProject PUBLIC ${ALL_LIB} )
 
-
-# TestExtensionCHarp --------------------------------------------------------------------------------------------------------------
-if (BUILD_OPENCV_FUNCTIONS)
-    add_executable(TestExtensionCharp ${PROJECT_SOURCE_DIR}/tests/TestExtensionCharp.cpp
-            tests/Helper.hpp)
-    target_include_directories(TestExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
-    target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharpStatic ${OpenCV_LIBS})
-endif ()
-
 ## TestTRTEngine --------------------------------------------------------------------------------------------------------------
 #add_executable(TestTRTEngine
 #        ${PROJECT_SOURCE_DIR}/tests/TestTRTEngine.cpp
@@ -192,6 +182,11 @@ endif ()
 #target_link_libraries(TestTRTEngine PUBLIC TRTLayer GstreamerLib NvJpgEncoderlib )
 
 if (BUILD_OPENCV_FUNCTIONS)
+    add_executable(TestExtensionCharp ${PROJECT_SOURCE_DIR}/tests/TestExtensionCharp.cpp
+            tests/Helper.hpp)
+    target_include_directories(TestExtensionCharp PUBLIC ${ALL_INCLUDE_LIB})
+    target_link_libraries(TestExtensionCharp PUBLIC ExtensionCharpStatic ${OpenCV_LIBS})
+
     add_executable(TestNppFunction
             ${PROJECT_SOURCE_DIR}/tests/TestNppFunction.cpp
             ${PROJECT_SOURCE_DIR}/infrastructure/NppFunction.cpp)
@@ -229,7 +224,9 @@ endif ()
 #target_link_libraries(TestNvJpgEncoder PUBLIC ${ALL_LIB} stdc++fs NvJpgEncoderlib)
 
 #TestPointInPolygon --------------------------------------------------------------------------------------------------------------
-add_executable(TestPointInPolygon ${PROJECT_SOURCE_DIR}/tests/TestPointInPolygon.cpp)
+add_executable(TestPointInPolygon
+        ${PROJECT_SOURCE_DIR}/tests/TestPointInPolygon.cpp
+        ${PROJECT_SOURCE_DIR}/infrastructure/AlgorithmsPolygon.cpp)
 target_include_directories(TestPointInPolygon PUBLIC ${ALL_INCLUDE_LIB})
 target_link_libraries(TestPointInPolygon PUBLIC ${ALL_LIB} stdc++fs)
 

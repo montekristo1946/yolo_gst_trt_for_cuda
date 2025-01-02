@@ -1,11 +1,7 @@
-//
-// Created by user on 19.11.2024.
-//
-
 #ifndef DTOTOCHARP_H
 #define DTOTOCHARP_H
 #include <cstdint>
-
+#include <vector>
 
 struct RectDetect
 {
@@ -32,6 +28,20 @@ public:
         TimeStamp = timeStamp;
         Veracity = veracity;
         TrackId = trackId;
+        PolygonId = -1;
+    }
+
+    RectDetect(const RectDetect& rect, int polygonId)
+    {
+        X = rect.X;
+        Y = rect.Y;
+        Width = rect.Width;
+        Height = rect.Height;
+        IdClass = rect.IdClass;
+        TimeStamp = rect.TimeStamp;
+        Veracity = rect.Veracity;
+        TrackId = rect.TrackId;
+        PolygonId = polygonId;
     }
 
     float X;
@@ -42,6 +52,7 @@ public:
     float Veracity;
     int TrackId;
     uint32_t   TimeStamp;
+    int PolygonId;
 
 };
 
@@ -64,21 +75,54 @@ struct ImageFrame {
     ImageFrame()
     {
         ImagesData = nullptr;
-        ImageLen = -1;
+        ImageLen = 0;
         TimeStamp =0;
     }
     unsigned char *ImagesData;
-    int ImageLen;
+    unsigned int ImageLen;
     uint64_t TimeStamp;
 
     ~ImageFrame() {
         if(ImagesData)
             delete[] ImagesData;
-        // if(TimeStamp)
-        //     delete TimeStamp;
     }
 };
 
+struct Point {
+    int Id;
+    float X;
+    float Y;
+};
 
+
+struct Polygons
+{
+    int Id;
+    std::vector<Point> Points;
+};
+
+struct PolygonExternal
+{
+
+    int Id;
+    Point * PointPtr;
+    unsigned int PointLen;
+
+    ~PolygonExternal() {
+        if(PointPtr)
+            delete[] PointPtr;
+    }
+
+};
+
+struct PolygonsSettingsExternal
+{
+    PolygonExternal * Polygons;
+    unsigned int PolygonsLen;
+    ~PolygonsSettingsExternal() {
+        if(Polygons)
+            delete[] Polygons;
+    }
+};
 
 #endif //DTOTOCHARP_H
