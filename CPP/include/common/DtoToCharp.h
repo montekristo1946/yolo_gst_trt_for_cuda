@@ -89,7 +89,6 @@ struct ImageFrame {
 };
 
 struct Point {
-    int Id;
     float X;
     float Y;
 };
@@ -101,27 +100,24 @@ struct Polygons
     std::vector<Point> Points;
 };
 
-struct PolygonExternal
-{
-
-    int Id;
-    Point * PointPtr;
-    unsigned int PointLen;
-
-    ~PolygonExternal() {
-        if(PointPtr)
-            delete[] PointPtr;
-    }
-
-};
 
 struct PolygonsSettingsExternal
 {
-    PolygonExternal * Polygons;
-    unsigned int PolygonsLen;
+    int IdPolygon;
+
+    float * PolygonsX;
+
+    float * PolygonsY;
+
+    unsigned int CountPoints;
+
+
     ~PolygonsSettingsExternal() {
-        if(Polygons)
-            delete[] Polygons;
+        if(PolygonsX)
+            delete[] PolygonsX;
+
+        if(PolygonsY)
+            delete[] PolygonsY;
     }
 };
 

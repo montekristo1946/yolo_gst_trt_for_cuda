@@ -285,32 +285,12 @@ extern "C" MYLIB_EXPORT TrackerManager* CreateTrackerManager(const int frameRate
     return nullptr;
 }
 
-
-extern "C" MYLIB_EXPORT AlgorithmsPolygon* CreateAlgorithmsPolygon( PolygonsSettingsExternal * polygonsSettings)
+extern "C" MYLIB_EXPORT AlgorithmsPolygon* CreateAlgorithmsPolygon()
 {
     info("[CreateAlgorithmsPolygon] Init AlgorithmsPolygon");
     try
     {
-        if (!polygonsSettings)
-            throw std::runtime_error("[CreateAlgorithmsPolygon] Null polygonsSettings");
-
-        vector polygonExternal(polygonsSettings->Polygons, polygonsSettings->Polygons + polygonsSettings->PolygonsLen);
-
-        auto polygonSettings = vector<Polygons>();
-
-        for(auto& polygon : polygonExternal)
-        {
-            auto pointsPtr = vector(polygon.PointPtr, polygon.PointPtr + polygon.PointLen);
-            auto points = vector<Point>();
-            for (auto& point : pointsPtr)
-            {
-                points.emplace_back(point.Id,point.X, point.Y);
-            }
-            polygonSettings.emplace_back(polygon.Id, points);
-        }
-
-        auto algorithmsPolygon = new AlgorithmsPolygon(polygonSettings);
-
+        auto algorithmsPolygon = new AlgorithmsPolygon();
         OperationalSavingLogs();
         return algorithmsPolygon;
     }
@@ -326,6 +306,64 @@ extern "C" MYLIB_EXPORT AlgorithmsPolygon* CreateAlgorithmsPolygon( PolygonsSett
     return nullptr;
 }
 
+extern "C" MYLIB_EXPORT bool AlgorithmsPolygonClear(AlgorithmsPolygon* algorithmsPolygon)
+{
+    info("[AlgorithmsPolygonClear] call AlgorithmsPolygonClear");
+    try
+    {
+        if ( !algorithmsPolygon)
+            throw std::runtime_error("[AlgorithmsPolygonClear] Null parameters");
+
+        algorithmsPolygon->Clear();
+        OperationalSavingLogs();
+        return true;
+    }
+    catch (std::exception& e)
+    {
+        SlowloggingError("[AlgorithmsPolygonClear]  " + std::string(e.what()));
+    }
+    catch (...)
+    {
+        SlowloggingError("[AlgorithmsPolygonClear] Unknown exception!");
+    }
+
+    return false;
+}
+extern "C" MYLIB_EXPORT bool AlgorithmsPolygonAppend(AlgorithmsPolygon* algorithmsPolygon,PolygonsSettingsExternal * polygonsSettings)
+{
+    info("[AlgorithmsPolygonAppend] call AlgorithmsPolygonAppend");
+    try
+    {
+        if (!polygonsSettings || !algorithmsPolygon)
+            throw std::runtime_error("[AlgorithmsPolygonAppend] Null parameters");
+
+        auto points = vector<Point>();
+        for(int i = 0; i < polygonsSettings->CountPoints; i++)
+        {
+            auto x = polygonsSettings->PolygonsX[i];
+            auto y =  polygonsSettings->PolygonsY[i];
+            points.emplace_back(x, y);
+        }
+
+        auto polygon = Polygons(polygonsSettings->IdPolygon, points);
+
+        algorithmsPolygon->AppendPolygon(polygon);
+        OperationalSavingLogs();
+        return true;
+    }
+    catch (std::exception& e)
+    {
+        SlowloggingError("[AlgorithmsPolygonAppend]  " + std::string(e.what()));
+    }
+    catch (...)
+    {
+        SlowloggingError("[AlgorithmsPolygonAppend] Unknown exception!");
+    }
+
+    return false;
+}
+
+
 
 extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine,
                                                             BufferFrameGpu* bufferFrameGpu,
@@ -335,7 +373,7 @@ extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine
                                                             TrackerManager* trackerManager,
                                                             AlgorithmsPolygon * algorithmsPolygon)
 {
-    if (!trtEngine || !bufferFrameGpu || !cudaStream || !settingPipeline || !encoder || !trackerManager)
+    if (!trtEngine || !bufferFrameGpu || !cudaStream || !settingPipeline || !encoder || !trackerManager || !algorithmsPolygon)
     {
         error("[CreateEnginPipeline] Null reference exception");
         return nullptr;

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <MainLogger.hpp>
 #include <vector>
 
 #include "AlgorithmsPolygon.h"
@@ -8,22 +9,22 @@ vector<Polygons> CreateExportDataPolygons()
 {
     auto points1 = vector<Point>
     {
-        {0, 0.4f, 0.2f},
-        {1, 0.6f, 0.2f},
-        {2, 0.8f, 0.4f},
-        {3, 0.8f, 0.6f},
-        {4, 0.6f, 0.8f},
-        {5, 0.4f, 0.8f},
-        {6, 0.2f, 0.6f},
-        {7, 0.2f, 0.4f},
+        { 0.4f, 0.2f},
+        { 0.6f, 0.2f},
+        { 0.8f, 0.4f},
+        { 0.8f, 0.6f},
+        { 0.6f, 0.8f},
+        { 0.4f, 0.8f},
+        { 0.2f, 0.6f},
+        { 0.2f, 0.4f},
     };
 
     auto points2 = vector<Point>
     {
-        {0, 0.4f, 0.2f},
-        {1, 0.6f, 0.2f},
-        {2, 0.6f, 0.9f},
-        {3, 0.4f, 0.9f},
+        { 0.4f, 0.2f},
+        { 0.6f, 0.2f},
+        { 0.6f, 0.9f},
+        { 0.4f, 0.9f},
     };
 
     auto polygons = vector<Polygons>
@@ -65,7 +66,10 @@ void TestPredict()
     auto polygonsSettings = CreateExportDataPolygons();
     auto rectangle = CreateRectangles();
 
-    auto algorithm = AlgorithmsPolygon(polygonsSettings);
+    auto algorithm = AlgorithmsPolygon();
+    algorithm.Clear();
+    for (const auto& polygon : polygonsSettings)
+        algorithm.AppendPolygon(polygon);
 
     auto rects = vector<RectDetect>();
     auto res = algorithm.Predict(rectangle, rects);
@@ -104,6 +108,8 @@ void TestPredict()
 
 int main()
 {
+    string logPathFileString = "./Logs/TestPointInPolygon.log";
+    auto mainLogger = MainLogger(logPathFileString);
 
     TestPredict();
 

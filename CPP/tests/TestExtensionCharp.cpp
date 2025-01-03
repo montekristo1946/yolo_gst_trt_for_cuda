@@ -158,32 +158,35 @@ TrackerManager* CreateManagerTrack()
 
 AlgorithmsPolygon* CreateAlgorithmsPolygonForTest()
 {
-    auto points1 = new Point[4]
-    {
-        {0, 0.01f, 0.01f},
-        {1, 0.99f, 0.01f},
-        {2, 0.99f, 0.49f},
-        {3, 0.01f, 0.49f}
-    };
+    auto algorithmsPolygon = CreateAlgorithmsPolygon();
 
-    auto points2 = new Point[4]
-    {
-        {0, 0.01f, 0.51f},
-        {1, 0.99f, 0.51f},
-        {2, 0.99f, 0.99f},
-        {3, 0.01f, 0.99f}
-    };
+    auto res = AlgorithmsPolygonClear(algorithmsPolygon);
+    if (!res)
+        throw runtime_error("[CreateAlgorithmsPolygonForTest] AlgorithmsPolygonClear");
 
-    PolygonExternal* polygons = new PolygonExternal[2]
-    {
-        {8, points1, 4},
-        {9, points2, 4},
-    };
+    auto polygonsSettings = new PolygonsSettingsExternal();
+
+    polygonsSettings->CountPoints = 4;
+    polygonsSettings->IdPolygon = 1;
+    polygonsSettings->PolygonsX = new float [] {0.01, 0.99, 0.99, 0.01};
+    polygonsSettings->PolygonsY = new float [] {0.01, 0.01, 0.49, 0.49};
 
 
-    auto polygonsSettings = new PolygonsSettingsExternal(polygons, 2);
+    res = AlgorithmsPolygonAppend(algorithmsPolygon, polygonsSettings);
+    if (!res)
+        throw runtime_error("[CreateAlgorithmsPolygonForTest] AlgorithmsPolygonAppend");
 
-    auto algorithmsPolygon = CreateAlgorithmsPolygon(polygonsSettings);
+    polygonsSettings->IdPolygon = 2;
+    polygonsSettings->PolygonsX = new float [] {0.01, 0.99, 0.99, 0.01};
+    polygonsSettings->PolygonsY = new float [] {0.51, 0.51, 0.99, 0.99};
+
+
+    res = AlgorithmsPolygonAppend(algorithmsPolygon, polygonsSettings);
+    if (!res)
+        throw runtime_error("[CreateAlgorithmsPolygonForTest] AlgorithmsPolygonAppend");
+
+    delete polygonsSettings;
+
     return algorithmsPolygon;
 }
 

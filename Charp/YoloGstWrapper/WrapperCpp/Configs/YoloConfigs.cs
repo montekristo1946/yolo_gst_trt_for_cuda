@@ -45,7 +45,7 @@ public class YoloConfigs()
     /// <summary>
     /// GST connection string pipeline.
     /// </summary>
-    public string ConnetctionString { get; set; }
+    // public string ConnetctionString { get; set; }
 
     /// <summary>
     /// Path to log file.

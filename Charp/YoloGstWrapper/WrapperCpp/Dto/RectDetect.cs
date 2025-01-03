@@ -43,6 +43,11 @@ public record RectDetect()
     ///     Track object in images
     /// </summary>
     public int TrackId { get; init; }= -1;
+    
+    /// <summary>
+    ///     Polygon id
+    /// </summary>
+    public int PolygonId;
 
     public static RectDetect RectDetectEnginToRectDetect(RectDetectEngin rectDetectEngin)
     {
@@ -55,7 +60,8 @@ public record RectDetect()
             IdClass = rectDetectEngin.IdClass,
             Veracity = rectDetectEngin.Veracity,
             TimeStamp = rectDetectEngin.TimeStamp,
-            TrackId = rectDetectEngin.TrackId
+            TrackId = rectDetectEngin.TrackId,
+            PolygonId = rectDetectEngin.PolygonId
         };
     }
 }

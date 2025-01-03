@@ -10,11 +10,14 @@ using namespace std;
 
 class AlgorithmsPolygon: public IDispose {
 public:
-    AlgorithmsPolygon(vector<Polygons>  & polygonsSettings);
+    AlgorithmsPolygon();
 
     bool Predict(const vector<RectDetect>& source,   vector<RectDetect> & destination);
 
     ~AlgorithmsPolygon();
+    void Clear();
+    void AppendPolygon(const Polygons& polygon);
+
 private:
     vector<Polygons>   _polygonsSettings;
     shared_ptr<logger> _logger = get("MainLogger");

@@ -29,6 +29,8 @@ public struct RectDetectEngin
     [FieldOffset(28)]
     public uint TimeStamp;
 
+    [FieldOffset(32)]
+    public int PolygonId;
 
     
 }

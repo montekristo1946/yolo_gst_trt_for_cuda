@@ -42,7 +42,7 @@ public record DoInferenceImageResult()
 /// <summary>
 /// IPipelineMlExtension.
 /// </summary>
-public interface IPipelineMlExtension
+public interface IPipelineMlExtension: IDisposable
 {
     /// <summary>
     /// Get ml Rectangle Yolo.
@@ -55,4 +55,11 @@ public interface IPipelineMlExtension
     /// </summary>
     /// <returns></returns>
     public DoInferenceImageResult GetCurrenImage();
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="connetctionString"></param>
+    /// <returns></returns>
+    public bool StartPipelineGst(string connetctionString);
 }

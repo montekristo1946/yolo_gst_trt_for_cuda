@@ -3,32 +3,32 @@ namespace WrapperCpp.Configs;
 public class TrackerConfig
 {
     /// <summary>
-    /// Frame rate
+    /// Frame rate.
     /// </summary>
     public int FrameRate { get; set; }
 
     /// <summary>
-    /// Track buffer
+    /// Track buffer.
     /// </summary>
     public int TrackBuffer { get; set; }
     
     /// <summary>
-    /// Threshold
+    /// Threshold.
     /// </summary>
     public float TrackThresh { get; set; }
 
     /// <summary>
-    /// Treshold new object
+    /// Treshold new object.
     /// </summary>
     public float HighThresh { get; set; }
 
     /// <summary>
-    /// Math treshold
+    /// Math treshold.
     /// </summary>
     public float MathThresh { get; set; }
 
     /// <summary>
-    /// Count tracks
+    /// Count tracks.
     /// </summary>
     public int MaxTrack { get; set; }
 }

@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using WrapperCpp.Configs;
@@ -19,10 +19,15 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
     private readonly nint _encoder = nint.Zero;
     private readonly nint _pipeline = nint.Zero;
     private readonly nint _trackerManager = nint.Zero;
+    private readonly nint _algorithmsPolygon = nint.Zero;
 
     private readonly ILogger _logger = Log.ForContext<PipelineMlExtension>();
 
-    public PipelineMlExtension(YoloConfigs configYolo, TrackerConfig configTracker, bool isMockCppMl = false)
+    public PipelineMlExtension(
+        YoloConfigs configYolo,
+        TrackerConfig configTracker,
+        Polygon[] configPolygons,
+        bool isMockCppMl = false)
     {
         if (isMockCppMl)
         {
@@ -33,7 +38,7 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
 
         ArgumentNullException.ThrowIfNull(configYolo);
         ArgumentNullException.ThrowIfNull(configTracker);
-
+        ArgumentNullException.ThrowIfNull(configPolygons);
 
         CreateCppLogger(configYolo.PathLogFile);
 
@@ -43,9 +48,59 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
         _bufferManager = CreateGstBufferManager();
         _encoder = CreateEncoder();
         _trackerManager = CreateTrackerManager(configTracker);
+        _algorithmsPolygon = CreateAlgorithmsPolygon();
+        AppendPolygons(configPolygons);
         _pipeline = CreatePipeline(configYolo);
-       
     }
+
+    public void AppendPolygons(Polygon[] polygons)
+    {
+        if(_algorithmsPolygon == nint.Zero)
+            throw new Exception("[PipelineMlExtension:AppendPolygons] algorithmsPolygon not init");
+
+        ArgumentNullException.ThrowIfNull(polygons);
+
+        try
+        {
+           var resClear = PipelinePInvoke.AlgorithmsPolygonClear(_algorithmsPolygon);
+            if(!resClear)
+                throw new Exception("[PipelineMlExtension:AppendPolygons] AlgorithmsPolygonClear return false");
+            
+            unsafe
+            {
+                foreach (var polygon in polygons)
+                {
+                    var x = polygon.Points.Select(p => p.X).ToArray();
+                    var y = polygon.Points.Select(p => p.Y).ToArray();
+                    var id = polygon.Id;
+                    var poinsCount = polygon.Points.Length;
+                    
+                    fixed (float* xPtr = x.AsSpan())
+                    fixed (float* yPtr = y.AsSpan())
+                    {
+                        var polygonExternal = new PolygonsSettingsExternal()
+                        {
+                            CountPoints = (uint)poinsCount,
+                            IdPolygon = id,
+                            PolygonsX = xPtr,
+                            PolygonsY = yPtr
+                        };
+
+                        var res = PipelinePInvoke.AlgorithmsPolygonAppend(_algorithmsPolygon,ref polygonExternal);
+                        if (!res)
+                            throw new Exception("[PipelineMlExtension:AppendPolygons] AlgorithmsPolygonAppend return false");
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "[AppendPolygons]");
+          
+        }
+
+    }
+
 
     private IntPtr CreateTrackerManager(TrackerConfig configTracker)
     {
@@ -73,6 +128,17 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
         return retPtr;
     }
 
+    private IntPtr CreateAlgorithmsPolygon()
+    {
+        var retPtr = PipelinePInvoke.CreateAlgorithmsPolygon();
+        if (retPtr == nint.Zero)
+        {
+            throw new Exception("[PipelineMlExtension:CreateAlgorithmsPolygon] retPtr not init");
+        }
+
+        return retPtr;
+    }
+
     private IntPtr CreatePipeline(YoloConfigs config)
     {
         var configPipeline = new SettingPipeline(config.WidthImgMl,
@@ -85,7 +151,8 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
             _cudaStream,
             ref configPipeline,
             _encoder,
-            _trackerManager);
+            _trackerManager,
+            _algorithmsPolygon);
 
         if (retPtr == nint.Zero)
         {

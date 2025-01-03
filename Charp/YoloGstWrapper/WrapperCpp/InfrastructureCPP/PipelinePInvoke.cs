@@ -7,9 +7,9 @@ namespace WrapperCpp.InfrastructureCPP;
 
 internal static class PipelinePInvoke
 {
-    private const string _patchDll = @"./LibsCPP/libExtensionCharp.so";
-    // private const string _patchDll =
-    // @"/mnt/Disk_C/git/yolo_gst_trt_for_cuda/CPP/cmake-build-release/libExtensionCharp.so";
+    // private const string _patchDll = @"./LibsCPP/libExtensionCharp.so";
+    private const string _patchDll =
+    @"/mnt/Disk_C/git/yolo_gst_trt_for_cuda/CPP/cmake-build-release/libExtensionCharp.so";
 
     [SuppressUnmanagedCodeSecurity]
     [DllImport(_patchDll, EntryPoint = "InitLogger", CallingConvention = CallingConvention.Cdecl)]
@@ -41,7 +41,7 @@ internal static class PipelinePInvoke
     [SuppressUnmanagedCodeSecurity]
     [DllImport(_patchDll, EntryPoint = "CreateNvJpgEncoder", CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr CreateNvJpgEncoder(IntPtr cudaStream);
-
+    
     [SuppressUnmanagedCodeSecurity]
     [DllImport(_patchDll, EntryPoint = "CreateEnginPipeline", CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr CreateEnginPipeline(
@@ -50,7 +50,8 @@ internal static class PipelinePInvoke
         IntPtr cudaStream,
         ref SettingPipeline configPipeline,
         IntPtr encoder,
-        IntPtr trackerManager);
+        IntPtr trackerManager,
+        IntPtr algorithmsPolygon);
 
     [SuppressUnmanagedCodeSecurity]
     [DllImport(_patchDll, EntryPoint = "DoInferencePipeline", CallingConvention = CallingConvention.Cdecl)]
@@ -92,4 +93,17 @@ internal static class PipelinePInvoke
         float highThresh,
         float matchThresh,
         int maxNumTrackers);
+    
+    [SuppressUnmanagedCodeSecurity]
+    [DllImport(_patchDll, EntryPoint = "CreateAlgorithmsPolygon", CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr CreateAlgorithmsPolygon();   
+
+    [SuppressUnmanagedCodeSecurity]
+    [DllImport(_patchDll, EntryPoint = "AlgorithmsPolygonClear", CallingConvention = CallingConvention.Cdecl)]
+    internal static extern bool AlgorithmsPolygonClear(IntPtr algorithmsPolygon);   
+    
+    [SuppressUnmanagedCodeSecurity]
+    [DllImport(_patchDll, EntryPoint = "AlgorithmsPolygonAppend", CallingConvention = CallingConvention.Cdecl)]
+    internal static extern bool AlgorithmsPolygonAppend(IntPtr algorithmsPolygon, ref PolygonsSettingsExternal polygons);   
+    
 }

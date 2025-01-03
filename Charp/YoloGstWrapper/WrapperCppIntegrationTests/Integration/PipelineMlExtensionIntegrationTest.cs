@@ -20,7 +20,7 @@ public class PipelineMlExtensionIntegrationTest
         };
     }
     
-    private static YoloConfigs CreateYoloConfigs(string connection)
+    private static YoloConfigs CreateYoloConfigs()
     {
         var config = new YoloConfigs()
         {
@@ -32,7 +32,7 @@ public class PipelineMlExtensionIntegrationTest
             WidthImgMl = 640,
             HeightImgMl = 640,
             CountImgToBackground = 25,
-            ConnetctionString = connection,
+            // ConnetctionString = connection,
             PathLogFile = "./Logs/PipelineMl_FullPass.txt"
         };
         return config;
@@ -54,16 +54,46 @@ public class PipelineMlExtensionIntegrationTest
         //                  "! appsink name=mysink sync=true";
         return connection;
     }
+    
+    public static Polygon[] CreateMoqPolygon()
+    {
+        return
+        [
+            new Polygon()
+            {
+                Id = 1,
+                Points =
+                [
+                    new PointWrapCpp() { Id = 0, X = 0.01F, Y = 0.01F },
+                    new PointWrapCpp() { Id = 1, X = 0.99F, Y = 0.01F },
+                    new PointWrapCpp() { Id = 2, X = 0.99F, Y = 0.49F },
+                    new PointWrapCpp() { Id = 3, X = 0.01F, Y = 0.49F },
+                ]
+            },
+            new Polygon()
+            {
+                Id = 2,
+                Points =
+                [
+                    new PointWrapCpp() { Id = 0, X = 0.01F, Y = 0.51F },
+                    new PointWrapCpp() { Id = 1, X = 0.99F, Y = 0.51F },
+                    new PointWrapCpp() { Id = 2, X = 0.99F, Y = 0.99F },
+                    new PointWrapCpp() { Id = 3, X = 0.01F, Y = 0.99F },
+                ]
+            },
+        ];
+    }
 
     public void FullPass()
     {
-        var connection = CreateConnection();
+        var connectionUrl = CreateConnection();
 
-        var yoloConfigs = CreateYoloConfigs(connection);
+        var yoloConfigs = CreateYoloConfigs();
         var trackerConfig = CreateTrackerConfig();
-
-        var pipelineMl = new PipelineMlExtension(yoloConfigs,trackerConfig);
-        pipelineMl.StartPipelineGst(yoloConfigs.ConnetctionString);
+        var configPolygons = CreateMoqPolygon();
+        
+        var pipelineMl = new PipelineMlExtension(yoloConfigs,trackerConfig,configPolygons);
+        pipelineMl.StartPipelineGst(connectionUrl);
         
 
         var stopwatch = new Stopwatch();

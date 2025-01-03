@@ -1,12 +1,8 @@
 #include <AlgorithmsPolygon.h>
 #include <stdexcept>
 
-AlgorithmsPolygon::AlgorithmsPolygon(vector<Polygons>  & polygonsSettings)
+AlgorithmsPolygon::AlgorithmsPolygon()
 {
-    if(polygonsSettings.empty())
-        throw std::runtime_error("[AlgorithmsPolygon::Ctr] Null polygonsSettings");
-
-    _polygonsSettings = polygonsSettings;
 }
 
 bool AlgorithmsPolygon::Predict(const vector<RectDetect>& source, vector<RectDetect>& destination)
@@ -53,7 +49,7 @@ bool AlgorithmsPolygon::Predict(const vector<RectDetect>& source, vector<RectDet
 bool AlgorithmsPolygon::IsPointInPolygon( const Polygons& polygonComplex,const RectDetect& rect)
 {
     auto polygon = polygonComplex.Points;
-    auto point = Point(-1,rect.X, rect.Y);
+    auto point = Point(rect.X, rect.Y);
     int n = polygon.size();
     int count = 0;
 
@@ -80,6 +76,18 @@ bool AlgorithmsPolygon::IsPointInPolygon( const Polygons& polygonComplex,const R
 AlgorithmsPolygon::~AlgorithmsPolygon()
 {
 
+}
+
+void AlgorithmsPolygon::Clear()
+{
+    _polygonsSettings.clear();
+    _logger->info("[AlgorithmsPolygon::Clear] Clear ok");
+}
+
+void AlgorithmsPolygon::AppendPolygon(const Polygons& polygon)
+{
+    _polygonsSettings.emplace_back(polygon);
+    _logger->info("[AlgorithmsPolygon::AppendPolygon] Append ok");
 }
 
 
