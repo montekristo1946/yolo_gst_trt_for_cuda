@@ -1,6 +1,7 @@
 #include "../infrastructure/ExtensionCharp.cpp"
 #include "Helper.hpp"
 #include "SettingPipeline.h"
+#include "DtoToCharp.h"
 
 void Test_ConverterNetWeight(const string modelInput, const string modelOutput)
 {
@@ -58,100 +59,132 @@ SettingPipeline* CreateSettingPipeline()
 
 TrackerManager* CreateManagerTrack()
 {
-    return CreateTrackerManager(30,30,0.2,0.5,0.7,4);
+    return CreateTrackerManager(30, 30, 0.2, 0.5, 0.7, 4);
 }
 
-void Test_init_pipeline(const char* model_output, bool isShow = true)
+// void Test_init_pipeline(const char* model_output, bool isShow = true)
+// {
+//     printf("______  Test_init_pipeline start______  \n");
+//     auto pathLog = CreatCharLineToString("./Logs/Test_SunBunny.log");
+//     InitLogger(pathLog);
+//     auto cudaStream = CreateCudaStream();
+//     auto config = CreateTRTEngineConfig(model_output);
+//     auto trtEngine = CreateTRTEngine(config, cudaStream);
+//     auto bufferFrameGpu = CreateBufferFrameGpu();
+//     auto bufferManager = CreateGstBufferManager(bufferFrameGpu, cudaStream);
+//
+//     auto gstDecoder = CreateGstDecoder(bufferManager);
+//
+//     auto connectString = CreateConnectString();
+//     auto resConnect = StartPipelineGst(gstDecoder, connectString);
+//     if (!resConnect)
+//         throw runtime_error("[Test_init_pipeline] StartPipelineGst");
+//
+//     auto encoder = CreateNvJpgEncoder(cudaStream);
+//     auto managerTrack = CreateManagerTrack();
+//     auto settingPipeline = CreateSettingPipeline();
+//     auto pipeline = CreateEnginPipeline(trtEngine, bufferFrameGpu, cudaStream, settingPipeline, encoder,managerTrack);
+//
+//     auto maxCountDetectRectangle = 150;
+//     auto countImg = 10000;
+//     while (countImg > 0)
+//     {
+//         std::this_thread::sleep_for(std::chrono::milliseconds(10));
+//         auto start = chrono::system_clock::now();
+//
+//
+//         auto pipelineOutputData = new PipelineOutputData();
+//         auto res = DoInferencePipeline(pipeline, pipelineOutputData);
+//         if (!res)
+//         {
+//             delete pipelineOutputData;
+//             continue;
+//         }
+//
+//
+//         countImg--;
+//
+//         ImageFrame* imageFrame = new ImageFrame();
+//         res = GetCurrenImage(pipeline, imageFrame);
+//
+//         if (!res)
+//             throw runtime_error("[Test_init_pipeline] GetCurrenImage");
+//
+//         auto endCapture = chrono::system_clock::now();
+//         info("elapsed time: " +
+//             to_string(chrono::duration_cast<chrono::microseconds>(endCapture - start).count()) +
+//             " resultNms.size: " + " " + to_string(pipelineOutputData->RectanglesLen));
+//
+//         if (imageFrame->ImageLen == 0)
+//             throw runtime_error("[Test_init_pipeline] encodedImage->size() == 0");
+//
+//         if (isShow)
+//         {
+//             Mat image = cv::imdecode(cv::_InputArray(imageFrame->ImagesData, imageFrame->ImageLen), cv::IMREAD_COLOR);
+//             DrawingResults(image, pipelineOutputData);
+//         }
+//
+//         delete imageFrame;
+//     }
+//
+//     vector<IDispose*> dispose = {
+//         gstDecoder,
+//         trtEngine,
+//         bufferFrameGpu,
+//         bufferManager,
+//         encoder,
+//         pipeline
+//     };
+//
+//     for (auto i = 0; i < dispose.size(); i++)
+//     {
+//         Dispose(dispose[i]);
+//     }
+//     //TODO: add test trt engine in ExtensionCharp.cpp
+//     printf("______  Test_init_pipeline OK______  \n");
+// }
+
+// void Test_memory_leak(const char* model_output)
+// {
+//
+//     for (int i = 0; i < 100; ++i)
+//     {
+//         printf("process %i ---------------------- \n", i);
+//         Test_init_pipeline(model_output, false);
+//     }
+//     printf("______  Test_memory_leak OK______  \n");
+// }
+
+
+AlgorithmsPolygon* CreateAlgorithmsPolygonForTest()
 {
-    printf("______  Test_init_pipeline start______  \n");
-    auto pathLog = CreatCharLineToString("./Logs/Test_SunBunny.log");
-    InitLogger(pathLog);
-    auto cudaStream = CreateCudaStream();
-    auto config = CreateTRTEngineConfig(model_output);
-    auto trtEngine = CreateTRTEngine(config, cudaStream);
-    auto bufferFrameGpu = CreateBufferFrameGpu();
-    auto bufferManager = CreateGstBufferManager(bufferFrameGpu, cudaStream);
-
-    auto gstDecoder = CreateGstDecoder(bufferManager);
-
-    auto connectString = CreateConnectString();
-    auto resConnect = StartPipelineGst(gstDecoder, connectString);
-    if (!resConnect)
-        throw runtime_error("[Test_init_pipeline] StartPipelineGst");
-
-    auto encoder = CreateNvJpgEncoder(cudaStream);
-    auto managerTrack = CreateManagerTrack();
-    auto settingPipeline = CreateSettingPipeline();
-    auto pipeline = CreateEnginPipeline(trtEngine, bufferFrameGpu, cudaStream, settingPipeline, encoder,managerTrack);
-
-    auto maxCountDetectRectangle = 150;
-    auto countImg = 10000;
-    while (countImg > 0)
+    auto points1 = new Point[4]
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        auto start = chrono::system_clock::now();
-
-
-        auto pipelineOutputData = new PipelineOutputData();
-        auto res = DoInferencePipeline(pipeline, pipelineOutputData);
-        if (!res)
-        {
-            delete pipelineOutputData;
-            continue;
-        }
-
-
-        countImg--;
-
-        ImageFrame* imageFrame = new ImageFrame();
-        res = GetCurrenImage(pipeline, imageFrame);
-
-        if (!res)
-            throw runtime_error("[Test_init_pipeline] GetCurrenImage");
-
-        auto endCapture = chrono::system_clock::now();
-        info("elapsed time: " +
-            to_string(chrono::duration_cast<chrono::microseconds>(endCapture - start).count()) +
-            " resultNms.size: " + " " + to_string(pipelineOutputData->RectanglesLen));
-
-        if (imageFrame->ImageLen == 0)
-            throw runtime_error("[Test_init_pipeline] encodedImage->size() == 0");
-
-        if (isShow)
-        {
-            Mat image = cv::imdecode(cv::_InputArray(imageFrame->ImagesData, imageFrame->ImageLen), cv::IMREAD_COLOR);
-            DrawingResults(image, pipelineOutputData);
-        }
-
-        delete imageFrame;
-    }
-
-    vector<IDispose*> dispose = {
-        gstDecoder,
-        trtEngine,
-        bufferFrameGpu,
-        bufferManager,
-        encoder,
-        pipeline
+        {0, 0.01f, 0.01f},
+        {1, 0.99f, 0.01f},
+        {2, 0.99f, 0.49f},
+        {3, 0.01f, 0.49f}
     };
 
-    for (auto i = 0; i < dispose.size(); i++)
+    auto points2 = new Point[4]
     {
-        Dispose(dispose[i]);
-    }
-    //TODO: add test trt engine in ExtensionCharp.cpp
-    printf("______  Test_init_pipeline OK______  \n");
-}
+        {0, 0.01f, 0.51f},
+        {1, 0.99f, 0.51f},
+        {2, 0.99f, 0.99f},
+        {3, 0.01f, 0.99f}
+    };
 
-void Test_memory_leak(const char* model_output)
-{
-
-    for (int i = 0; i < 100; ++i)
+    PolygonExternal* polygons = new PolygonExternal[2]
     {
-        printf("process %i ---------------------- \n", i);
-        Test_init_pipeline(model_output, false);
-    }
-    printf("______  Test_memory_leak OK______  \n");
+        {8, points1, 4},
+        {9, points2, 4},
+    };
+
+
+    auto polygonsSettings = new PolygonsSettingsExternal(polygons, 2);
+
+    auto algorithmsPolygon = CreateAlgorithmsPolygon(polygonsSettings);
+    return algorithmsPolygon;
 }
 
 
@@ -169,13 +202,19 @@ void Test_reconnect_pipeline(const char* model_output, bool isShow = false)
     auto encoder = CreateNvJpgEncoder(cudaStream);
     auto settingPipeline = CreateSettingPipeline();
     auto managerTrack = CreateManagerTrack();
+    auto algorithmsPolygon = CreateAlgorithmsPolygonForTest();
 
-    auto pipeline = CreateEnginPipeline(trtEngine, bufferFrameGpu, cudaStream, settingPipeline, encoder,managerTrack);
+    auto pipeline = CreateEnginPipeline(trtEngine,
+                                        bufferFrameGpu,
+                                        cudaStream,
+                                        settingPipeline,
+                                        encoder,
+                                        managerTrack,
+                                        algorithmsPolygon);
 
     auto countIterReconnect = 1000;
     while (countIterReconnect > 0)
     {
-
         auto gstDecoder = CreateGstDecoder(bufferManager);
         auto resConnect = StartPipelineGst(gstDecoder, connectString);
         if (!resConnect)
@@ -204,7 +243,8 @@ void Test_reconnect_pipeline(const char* model_output, bool isShow = false)
 
             if (isShow)
             {
-                Mat image = cv::imdecode(cv::_InputArray(imageFrame->ImagesData, imageFrame->ImageLen), cv::IMREAD_COLOR);
+                cv::Mat image = cv::imdecode(cv::_InputArray(imageFrame->ImagesData, imageFrame->ImageLen),
+                                         cv::IMREAD_COLOR);
                 DrawingResults(image, pipelineOutputData);
             }
 
@@ -222,7 +262,8 @@ void Test_reconnect_pipeline(const char* model_output, bool isShow = false)
         bufferFrameGpu,
         bufferManager,
         encoder,
-        pipeline
+        pipeline,
+        algorithmsPolygon
     };
 
     for (auto i = 0; i < dispose.size(); i++)
@@ -233,36 +274,6 @@ void Test_reconnect_pipeline(const char* model_output, bool isShow = false)
     printf("______  Test_reconnect_pipeline OK______  \n");
 }
 
-// PolygonsSettingsExternal* CreateExportDataPolygons()
-// {
-//     auto points1 = new Point[8]
-//     {
-//         {0, 0.4f, 0.2f},
-//         {1, 0.6f, 0.2f},
-//         {2, 0.8f, 0.4f},
-//         {3, 0.8f, 0.6f},
-//         {4, 0.6f, 0.8f},
-//         {5, 0.4f, 0.8f},
-//         {6, 0.2f, 0.6f},
-//         {7, 0.2f, 0.4f},
-//     };
-//
-//     auto points2 = new Point[4]
-//     {
-//         {0, 0.4f, 0.2f},
-//         {1, 0.6f, 0.2f},
-//         {2, 0.6f, 0.8f},
-//         {3, 0.4f, 0.8f},
-//     };
-//
-//     PolygonExternal* polygons = new PolygonExternal[2]
-//     {
-//         {0,     points1, 8},
-//         {1,     points2 , 4},
-//     };
-//
-//     return new PolygonsSettingsExternal(polygons, 2);
-// }
 
 int main(int argc, char* argv[])
 {
@@ -272,6 +283,6 @@ int main(int argc, char* argv[])
     // Test_ConverterNetWeight(modelInput, modelOutput);
     // Test_init_pipeline(modelOutput);
     // Test_memory_leak( modelOutput);
-    Test_reconnect_pipeline(modelOutput,true);
+    Test_reconnect_pipeline(modelOutput, true);
     return 0;
 }

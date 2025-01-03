@@ -1,23 +1,26 @@
 #include "EnginePipeline.h"
 
 
+class AlgorithmsPolygon;
+
 EnginePipeline::EnginePipeline(TRTEngine* trtEngine,
                                BufferFrameGpu* bufferFrameGpu,
                                cudaStream_t* streem,
                                SettingPipeline* settingPipeline,
                                NvJpgEncoder* encoder,
-                               TrackerManager* trackerManager)
+                               TrackerManager* trackerManager,
+                               AlgorithmsPolygon* algorithmsPolygon)
 {
-    if (!trtEngine || !bufferFrameGpu || !streem || !encoder)
+    if (!trtEngine || !bufferFrameGpu || !streem || !encoder || !trackerManager || !algorithmsPolygon)
         throw std::runtime_error("[ThermalPipeline::ThermalPipeline] Null reference exception");
 
     _trtEngine = trtEngine;
     _bufferFrameGpu = bufferFrameGpu;
-
     _streem = streem;
     _settingPipeline = settingPipeline;
     _encoder = encoder;
     _trackerManager = trackerManager;
+    _algorithmsPolygon = algorithmsPolygon;
 
     auto channel = 1;
     _imageBackground = FrameGpu<
@@ -103,13 +106,15 @@ bool EnginePipeline::GetResultImages(vector<RectDetect>& retRectDetect)
         if (!resulDoInferenceAsync)
             return false;
 
-
-        auto resTrackerManager = _trackerManager->Predict(srcResult, timeStamp, retRectDetect);
-        if(!resTrackerManager)
+        vector<RectDetect> tarckResult;
+        auto resTrackerManager = _trackerManager->Predict(srcResult, timeStamp, tarckResult);
+        if (!resTrackerManager)
             return false;
 
-        auto resConvertRect = ConverterDetection(retRectDetect);
-        if(!resConvertRect)
+        ConverterDetection(tarckResult);
+
+        auto resAlgorithmsPolygon = _algorithmsPolygon->Predict(tarckResult, retRectDetect);
+        if (!resAlgorithmsPolygon)
             return false;
 
         return true;

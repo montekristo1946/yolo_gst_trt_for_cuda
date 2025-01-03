@@ -8,6 +8,7 @@
 #include <TRTEngine.hpp>
 
 
+#include "AlgorithmsPolygon.h"
 #include "NvJpgEncoder.h"
 #include "SettingPipeline.h"
 #include "ByteTrack/BYTETracker.h"
@@ -23,7 +24,8 @@ public:
         cudaStream_t* streem,
         SettingPipeline* settingPipeline,
         NvJpgEncoder* encoder,
-        TrackerManager* _trackerManager);
+        TrackerManager* _trackerManager,
+         AlgorithmsPolygon * algorithmsPolygon);
 
     bool GetResultImages( vector<RectDetect>&  result);
     ~EnginePipeline();
@@ -42,6 +44,7 @@ private:
     cudaStream_t* _streem = 0;
     SettingPipeline* _settingPipeline= nullptr;
     TrackerManager* _trackerManager  = nullptr;
+    AlgorithmsPolygon * _algorithmsPolygon = nullptr;
 
     std::vector<uchar> _imagesExport ;
     FrameGpu<Npp32f> *_imageBackground = nullptr;

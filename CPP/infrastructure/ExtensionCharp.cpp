@@ -19,6 +19,7 @@
 #include <TRTEngine.hpp>
 #include <TRTEngineConfig.hpp>
 
+#include "AlgorithmsPolygon.h"
 #include "CudaStream.h"
 #include "DtoToCharp.h"
 #include "EnginePipeline.h"
@@ -285,12 +286,54 @@ extern "C" MYLIB_EXPORT TrackerManager* CreateTrackerManager(const int frameRate
 }
 
 
+extern "C" MYLIB_EXPORT AlgorithmsPolygon* CreateAlgorithmsPolygon( PolygonsSettingsExternal * polygonsSettings)
+{
+    info("[CreateAlgorithmsPolygon] Init AlgorithmsPolygon");
+    try
+    {
+        if (!polygonsSettings)
+            throw std::runtime_error("[CreateAlgorithmsPolygon] Null polygonsSettings");
+
+        vector polygonExternal(polygonsSettings->Polygons, polygonsSettings->Polygons + polygonsSettings->PolygonsLen);
+
+        auto polygonSettings = vector<Polygons>();
+
+        for(auto& polygon : polygonExternal)
+        {
+            auto pointsPtr = vector(polygon.PointPtr, polygon.PointPtr + polygon.PointLen);
+            auto points = vector<Point>();
+            for (auto& point : pointsPtr)
+            {
+                points.emplace_back(point.Id,point.X, point.Y);
+            }
+            polygonSettings.emplace_back(polygon.Id, points);
+        }
+
+        auto algorithmsPolygon = new AlgorithmsPolygon(polygonSettings);
+
+        OperationalSavingLogs();
+        return algorithmsPolygon;
+    }
+    catch (std::exception& e)
+    {
+        SlowloggingError("[CreateAlgorithmsPolygon]  " + std::string(e.what()));
+    }
+    catch (...)
+    {
+        SlowloggingError("[CreateAlgorithmsPolygon] Unknown exception!");
+    }
+
+    return nullptr;
+}
+
+
 extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine,
                                                             BufferFrameGpu* bufferFrameGpu,
                                                             CudaStream* cudaStream,
                                                             SettingPipeline* settingPipeline,
                                                             NvJpgEncoder* encoder,
-                                                            TrackerManager* trackerManager)
+                                                            TrackerManager* trackerManager,
+                                                            AlgorithmsPolygon * algorithmsPolygon)
 {
     if (!trtEngine || !bufferFrameGpu || !cudaStream || !settingPipeline || !encoder || !trackerManager)
     {
@@ -316,7 +359,8 @@ extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine
                                            cudaStream->GetStream(),
                                            settingPipelineLoc,
                                            encoder,
-                                           trackerManager);
+                                           trackerManager,
+                                           algorithmsPolygon);
 
         OperationalSavingLogs();
         return pipeline;

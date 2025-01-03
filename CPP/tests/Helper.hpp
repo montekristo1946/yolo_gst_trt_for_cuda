@@ -13,7 +13,7 @@
 #include "TRTEngine.hpp"
 
 using namespace std;
-using namespace cv;
+
 
 const int ImageWidth = 640;
 const int ImageHeight = 640;
@@ -111,42 +111,46 @@ std::vector<float> ReadFileToVector(const std::string &filename) {
 //    return resultDl;
 //}
 
-map<int, Scalar> ColorInLabels = {
-    {0, Scalar(0, 0, 255)},
-    {1, Scalar(0, 255, 0)},
-    {2, Scalar(255, 0, 0)},
-    {3, Scalar(255, 255, 0)},
-    {4, Scalar(255, 0, 255)}
+map<int,cv::Scalar> ColorInLabels = {
+    {0, cv::Scalar(0, 0, 255)},
+    {1, cv::Scalar(0, 255, 0)},
+    {2, cv::Scalar(255, 0, 0)},
+    {3, cv::Scalar(255, 255, 0)},
+    {4, cv::Scalar(255, 0, 255)}
 };
 
 
-void DrawingResults(Mat mat, PipelineOutputData * pipelineOutputData)
+void DrawingResults(cv::Mat mat, PipelineOutputData * pipelineOutputData)
 {
     cv::Scalar colorText(0, 0, 255); // Green color
     int fontFace = cv::FONT_HERSHEY_SIMPLEX;
     double fontScale = 0.75;
     auto rectsSrc = pipelineOutputData->Rectangles;
-    vector<RectDetect> rects = vector<RectDetect>(rectsSrc, rectsSrc + pipelineOutputData->RectanglesLen);
+    vector<RectDetect> rects = vector(rectsSrc, rectsSrc + pipelineOutputData->RectanglesLen);
     for (auto rect : rects)
     {
         auto width = (int)(rect.Width*ImageWidth);
         auto height = (int)(rect.Height*ImageHeight);
         auto x = (int)((rect.X - rect.Width / 2) *ImageWidth);
         auto y = (int)((rect.Y - rect.Height / 2) *ImageHeight);;
+
         auto text = to_string(rect.Veracity);
         auto color = ColorInLabels[(int)rect.IdClass];
         auto track_id = rect.TrackId;
+        auto polygon = rect.PolygonId;
+        auto pointCenter = cv::Point(x + width / 2, y + height / 2);
 
         rectangle(mat, cv::Rect(x, y, width, height), color, 1, 8, 0);
         putText(mat, to_string(rect.TimeStamp), cv::Point(10, ImageHeight-50), fontFace, fontScale, colorText);
         putText(mat, to_string(track_id), cv::Point(x, y), fontFace, fontScale, color);
+        putText(mat, to_string(polygon), pointCenter, fontFace, fontScale, color);
     };
 
     imshow("Result", mat);
-    waitKey(1);
+    cv::waitKey(1);
 }
 
-void DrawingResults(Mat mat, vector<Detection> rects,uint64_t timeStamp)
+void DrawingResults(cv::Mat mat, vector<Detection> rects,uint64_t timeStamp)
 {
     cv::Scalar colorText(0, 0, 255); // Green color
     int fontFace = cv::FONT_HERSHEY_SIMPLEX;
@@ -166,7 +170,7 @@ void DrawingResults(Mat mat, vector<Detection> rects,uint64_t timeStamp)
     };
 
     imshow("Result", mat);
-    waitKey(1);
+    cv::waitKey(1);
 }
 
 #endif //HELPER_TESTS_H
