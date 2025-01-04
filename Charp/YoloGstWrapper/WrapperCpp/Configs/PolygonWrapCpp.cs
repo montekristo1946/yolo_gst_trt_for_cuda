@@ -1,6 +1,6 @@
 namespace WrapperCpp.Configs;
 
-public class Polygon
+public class PolygonWrapCpp
 {
 
     /// <summary>

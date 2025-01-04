@@ -26,7 +26,7 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
     public PipelineMlExtension(
         YoloConfigs configYolo,
         TrackerConfig configTracker,
-        Polygon[] configPolygons,
+        PolygonWrapCpp[] configPolygons,
         bool isMockCppMl = false)
     {
         if (isMockCppMl)
@@ -53,7 +53,7 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
         _pipeline = CreatePipeline(configYolo);
     }
 
-    public void AppendPolygons(Polygon[] polygons)
+    public void AppendPolygons(PolygonWrapCpp[] polygons)
     {
         if(_algorithmsPolygon == nint.Zero)
             throw new Exception("[PipelineMlExtension:AppendPolygons] algorithmsPolygon not init");

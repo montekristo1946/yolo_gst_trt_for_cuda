@@ -55,11 +55,11 @@ public class PipelineMlExtensionIntegrationTest
         return connection;
     }
     
-    public static Polygon[] CreateMoqPolygon()
+    public static PolygonWrapCpp[] CreateMoqPolygon()
     {
         return
         [
-            new Polygon()
+            new PolygonWrapCpp()
             {
                 Id = 1,
                 Points =
@@ -70,7 +70,7 @@ public class PipelineMlExtensionIntegrationTest
                     new PointWrapCpp() { Id = 3, X = 0.01F, Y = 0.49F },
                 ]
             },
-            new Polygon()
+            new PolygonWrapCpp()
             {
                 Id = 2,
                 Points =
@@ -115,7 +115,7 @@ public class PipelineMlExtensionIntegrationTest
             if (resGetCurrenImage.IsSuccess)
             {
                 var time = resGetCurrenImage.TimeStamp;
-                var filePath = $"/mnt/Disk_D/TMP/20.11.2024/{time/1000000}.jpg";
+                var filePath = $"/mnt/Disk_D/TMP/20.11.2024/{time}.jpg";
                 
                 File.WriteAllBytes(filePath, resGetCurrenImage.ImageInJpeg);
             }
