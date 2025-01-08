@@ -255,10 +255,13 @@ void Test_reconnect_pipeline(const char* model_output, bool isShow = false)
 
             if (isShow)
             {
-                cv::Mat image = cv::imdecode(cv::_InputArray(imageFrame->ImagesData, imageFrame->ImageLen),
-                                         cv::IMREAD_COLOR);
+                cv::Mat image = cv::imdecode(cv::_InputArray(imageFrame->ImagesData, imageFrame->ImageLen),  cv::IMREAD_COLOR);
                 DrawingResults(image, pipelineOutputData);
             }
+
+            auto resDispose = DisposeArr(pipelineOutputData->Rectangles);
+
+            // delete [] pipelineOutputData->Rectangles;
 
             delete pipelineOutputData;
             delete imageFrame;
@@ -286,6 +289,26 @@ void Test_reconnect_pipeline(const char* model_output, bool isShow = false)
     printf("______  Test_reconnect_pipeline OK______  \n");
 }
 
+struct RectDetectExternalTest
+{
+public:
+
+    int TrackId3;
+    int TrackId2;
+    int TrackId;
+    uint32_t TimeStamp;
+    uint32_t PolygonsIdLen;
+    int* PolygonsId;
+
+};
+
+void Show_size()
+{
+     printf("Size: %zu\n", sizeof(RectDetectExternalTest));
+
+    printf("Size: %zu\n", sizeof(ImageFrame));
+
+}
 
 int main(int argc, char* argv[])
 {
@@ -296,5 +319,6 @@ int main(int argc, char* argv[])
     // Test_init_pipeline(modelOutput);
     // Test_memory_leak( modelOutput);
     Test_reconnect_pipeline(modelOutput, true);
+    // Show_size();
     return 0;
 }

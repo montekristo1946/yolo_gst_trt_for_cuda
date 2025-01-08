@@ -43,25 +43,26 @@ public record RectDetect()
     ///     Track object in images
     /// </summary>
     public int TrackId { get; init; }= -1;
-    
+
     /// <summary>
     ///     Polygon id
     /// </summary>
-    public int PolygonId;
+    public int[] PolygonsId = [];
 
-    public static RectDetect RectDetectEnginToRectDetect(RectDetectEngin rectDetectEngin)
+    public static RectDetect RectDetectEnginToRectDetect(RectDetectExternal rectDetectExternal, int [] polygonsId)
     {
         return new RectDetect()
         {
-            X = rectDetectEngin.X,
-            Y = rectDetectEngin.Y,
-            Width = rectDetectEngin.Width,
-            Height = rectDetectEngin.Height,
-            IdClass = rectDetectEngin.IdClass,
-            Veracity = rectDetectEngin.Veracity,
-            TimeStamp = rectDetectEngin.TimeStamp,
-            TrackId = rectDetectEngin.TrackId,
-            PolygonId = rectDetectEngin.PolygonId
+            X = rectDetectExternal.X,
+            Y = rectDetectExternal.Y,
+            Width = rectDetectExternal.Width,
+            Height = rectDetectExternal.Height,
+            IdClass = rectDetectExternal.IdClass,
+            Veracity = rectDetectExternal.Veracity,
+            TimeStamp = rectDetectExternal.TimeStamp,
+            TrackId = rectDetectExternal.TrackId,
+            PolygonsId = polygonsId
+            // PolygonsId = rectDetectExternal.PolygonsId
         };
     }
 }

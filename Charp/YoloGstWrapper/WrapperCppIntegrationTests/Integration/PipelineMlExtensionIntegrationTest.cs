@@ -82,6 +82,17 @@ public class PipelineMlExtensionIntegrationTest
                     new PointWrapCpp() { X = 0.01F, Y = 0.99F },
                 ]
             },
+            new PolygonWrapCpp()
+            {
+                Id = 3,
+                Points =
+                [
+                    new PointWrapCpp() { X = 0.01F, Y = 0.01F },
+                    new PointWrapCpp() { X = 0.99F, Y = 0.01F },
+                    new PointWrapCpp() { X = 0.99F, Y = 0.99F },
+                    new PointWrapCpp() { X = 0.01F, Y = 0.99F },
+                ]
+            },
         ];
     }
 

@@ -82,7 +82,8 @@ public:
     int TrackId;
     uint32_t TimeStamp;
     int* PolygonsId;
-    unsigned int PolygonsIdLen;
+    uint32_t PolygonsIdLen;
+
 
     ~RectDetectExternal()
     {
@@ -114,7 +115,8 @@ struct PipelineOutputData
     }
 
     RectDetectExternal* Rectangles;
-    unsigned int RectanglesLen;
+    uint32_t RectanglesLen;
+    uint32_t StepStructure;
 };
 
 

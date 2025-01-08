@@ -311,7 +311,7 @@ extern "C" MYLIB_EXPORT bool AlgorithmsPolygonClear(AlgorithmsPolygon* algorithm
     info("[AlgorithmsPolygonClear] call AlgorithmsPolygonClear");
     try
     {
-        if ( !algorithmsPolygon)
+        if (!algorithmsPolygon)
             throw std::runtime_error("[AlgorithmsPolygonClear] Null parameters");
 
         algorithmsPolygon->Clear();
@@ -329,7 +329,9 @@ extern "C" MYLIB_EXPORT bool AlgorithmsPolygonClear(AlgorithmsPolygon* algorithm
 
     return false;
 }
-extern "C" MYLIB_EXPORT bool AlgorithmsPolygonAppend(AlgorithmsPolygon* algorithmsPolygon,PolygonsSettingsExternal * polygonsSettings)
+
+extern "C" MYLIB_EXPORT bool AlgorithmsPolygonAppend(AlgorithmsPolygon* algorithmsPolygon,
+                                                     PolygonsSettingsExternal* polygonsSettings)
 {
     info("[AlgorithmsPolygonAppend] call AlgorithmsPolygonAppend");
     try
@@ -338,10 +340,10 @@ extern "C" MYLIB_EXPORT bool AlgorithmsPolygonAppend(AlgorithmsPolygon* algorith
             throw std::runtime_error("[AlgorithmsPolygonAppend] Null parameters");
 
         auto points = vector<Point>();
-        for(int i = 0; i < polygonsSettings->CountPoints; i++)
+        for (int i = 0; i < polygonsSettings->CountPoints; i++)
         {
             auto x = polygonsSettings->PolygonsX[i];
-            auto y =  polygonsSettings->PolygonsY[i];
+            auto y = polygonsSettings->PolygonsY[i];
             points.emplace_back(x, y);
         }
 
@@ -364,16 +366,16 @@ extern "C" MYLIB_EXPORT bool AlgorithmsPolygonAppend(AlgorithmsPolygon* algorith
 }
 
 
-
 extern "C" MYLIB_EXPORT EnginePipeline* CreateEnginPipeline(TRTEngine* trtEngine,
                                                             BufferFrameGpu* bufferFrameGpu,
                                                             CudaStream* cudaStream,
                                                             SettingPipeline* settingPipeline,
                                                             NvJpgEncoder* encoder,
                                                             TrackerManager* trackerManager,
-                                                            AlgorithmsPolygon * algorithmsPolygon)
+                                                            AlgorithmsPolygon* algorithmsPolygon)
 {
-    if (!trtEngine || !bufferFrameGpu || !cudaStream || !settingPipeline || !encoder || !trackerManager || !algorithmsPolygon)
+    if (!trtEngine || !bufferFrameGpu || !cudaStream || !settingPipeline || !encoder || !trackerManager || !
+        algorithmsPolygon)
     {
         error("[CreateEnginPipeline] Null reference exception");
         return nullptr;
@@ -468,7 +470,35 @@ extern "C" MYLIB_EXPORT bool Dispose(IDispose* ptr)
     return false;
 }
 
-extern "C" MYLIB_EXPORT bool DisposeArr(void* ptr)
+extern "C" MYLIB_EXPORT bool DisposeArrChar(char* ptr)
+{
+    try
+    {
+
+        if (!ptr)
+        {
+            OperationalSavingLogs();
+            return false;
+        }
+
+        delete [] ptr;
+
+        OperationalSavingLogs();
+        return true;
+    }
+    catch (exception& e)
+    {
+        SlowloggingError("[DisposeArrChar]  " + string(e.what()));
+    }
+    catch (...)
+    {
+        SlowloggingError("[DisposeArrChar] Unknown exception!");
+    }
+
+    return false;
+}
+
+extern "C" MYLIB_EXPORT bool DisposeRectDetectExternal(RectDetectExternal* ptr)
 {
     try
     {
@@ -477,6 +507,7 @@ extern "C" MYLIB_EXPORT bool DisposeArr(void* ptr)
             OperationalSavingLogs();
             return false;
         }
+
         delete [] ptr;
 
         OperationalSavingLogs();
@@ -484,11 +515,11 @@ extern "C" MYLIB_EXPORT bool DisposeArr(void* ptr)
     }
     catch (exception& e)
     {
-        SlowloggingError("[DisposeArr]  " + string(e.what()));
+        SlowloggingError("[DisposeRectDetectExternal]  " + string(e.what()));
     }
     catch (...)
     {
-        SlowloggingError("[DisposeArr] Unknown exception!");
+        SlowloggingError("[DisposeRectDetectExternal] Unknown exception!");
     }
 
     return false;
@@ -534,6 +565,7 @@ extern "C" MYLIB_EXPORT bool DoInferencePipeline(EnginePipeline* enginePipeline,
 
         pipelineOutputData->RectanglesLen = resultNms.size();
         pipelineOutputData->Rectangles = arr;
+        pipelineOutputData->StepStructure = sizeof(RectDetectExternal);
 
         return true;
     }

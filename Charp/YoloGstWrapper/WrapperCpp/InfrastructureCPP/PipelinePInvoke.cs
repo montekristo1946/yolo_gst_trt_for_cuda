@@ -62,9 +62,16 @@ internal static class PipelinePInvoke
     internal static extern bool Dispose(IntPtr disposeObj);
 
     [SuppressUnmanagedCodeSecurity]
-    [DllImport(_patchDll, EntryPoint = "DisposeArr", CallingConvention = CallingConvention.Cdecl)]
-    internal static extern bool DisposeArr(IntPtr disposeObj);
+    [DllImport(_patchDll, EntryPoint = "DisposeArrChar", CallingConvention = CallingConvention.Cdecl)]
+    internal static extern bool DisposeArrChar(IntPtr disposeObj);
 
+
+    [SuppressUnmanagedCodeSecurity]
+    [DllImport(_patchDll, EntryPoint = "DisposeRectDetectExternal", CallingConvention = CallingConvention.Cdecl)]
+    internal static extern bool DisposeRectDetectExternal(IntPtr ptr);
+  
+    
+    
     [SuppressUnmanagedCodeSecurity]
     [DllImport(_patchDll, EntryPoint = "GetCurrenImage", CallingConvention = CallingConvention.Cdecl)]
     internal static extern bool GetCurrenImage(IntPtr pipeline, ref ImageFrame imageFrame);
@@ -104,6 +111,7 @@ internal static class PipelinePInvoke
     
     [SuppressUnmanagedCodeSecurity]
     [DllImport(_patchDll, EntryPoint = "AlgorithmsPolygonAppend", CallingConvention = CallingConvention.Cdecl)]
-    internal static extern bool AlgorithmsPolygonAppend(IntPtr algorithmsPolygon, ref PolygonsSettingsExternal polygons);   
-    
+    internal static extern bool AlgorithmsPolygonAppend(IntPtr algorithmsPolygon, ref PolygonsSettingsExternal polygons);
+
+  
 }

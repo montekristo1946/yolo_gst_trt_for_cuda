@@ -7,9 +7,12 @@ internal struct PipelineOutputData
 {
 
     [FieldOffset(0)]
-    internal  unsafe RectDetectEngin* Rectangles;
+    internal  IntPtr Rectangles;
 
     [FieldOffset(8)]
     internal  uint RectanglesLen;
+    
+    [FieldOffset(12)]
+    internal  uint StepStructure;
 
 }

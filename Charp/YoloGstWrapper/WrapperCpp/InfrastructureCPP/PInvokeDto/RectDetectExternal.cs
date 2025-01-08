@@ -3,7 +3,7 @@
 namespace WrapperCpp.InfrastructureCPP.PInvokeDto;
 
 [StructLayout(LayoutKind.Explicit, Pack = 1)]
-public struct RectDetectEngin
+public struct RectDetectExternal
 {
     [FieldOffset(0)]
     public float X;
@@ -28,9 +28,13 @@ public struct RectDetectEngin
     
     [FieldOffset(28)]
     public uint TimeStamp;
-
+    
     [FieldOffset(32)]
-    public int PolygonId;
-
+    public IntPtr PolygonsId;
+    
+    [FieldOffset(40)]
+    public  uint PolygonsIdLen;
+    
+  
     
 }

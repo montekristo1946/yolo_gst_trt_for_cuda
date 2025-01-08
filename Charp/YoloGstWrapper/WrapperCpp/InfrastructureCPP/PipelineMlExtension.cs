@@ -55,17 +55,17 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
 
     public void AppendPolygons(PolygonWrapCpp[] polygons)
     {
-        if(_algorithmsPolygon == nint.Zero)
+        if (_algorithmsPolygon == nint.Zero)
             throw new Exception("[PipelineMlExtension:AppendPolygons] algorithmsPolygon not init");
 
         ArgumentNullException.ThrowIfNull(polygons);
 
         try
         {
-           var resClear = PipelinePInvoke.AlgorithmsPolygonClear(_algorithmsPolygon);
-            if(!resClear)
+            var resClear = PipelinePInvoke.AlgorithmsPolygonClear(_algorithmsPolygon);
+            if (!resClear)
                 throw new Exception("[PipelineMlExtension:AppendPolygons] AlgorithmsPolygonClear return false");
-            
+
             unsafe
             {
                 foreach (var polygon in polygons)
@@ -74,7 +74,7 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
                     var y = polygon.Points.Select(p => p.Y).ToArray();
                     var id = polygon.Id;
                     var poinsCount = polygon.Points.Length;
-                    
+
                     fixed (float* xPtr = x.AsSpan())
                     fixed (float* yPtr = y.AsSpan())
                     {
@@ -86,9 +86,10 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
                             PolygonsY = yPtr
                         };
 
-                        var res = PipelinePInvoke.AlgorithmsPolygonAppend(_algorithmsPolygon,ref polygonExternal);
+                        var res = PipelinePInvoke.AlgorithmsPolygonAppend(_algorithmsPolygon, ref polygonExternal);
                         if (!res)
-                            throw new Exception("[PipelineMlExtension:AppendPolygons] AlgorithmsPolygonAppend return false");
+                            throw new Exception(
+                                "[PipelineMlExtension:AppendPolygons] AlgorithmsPolygonAppend return false");
                     }
                 }
             }
@@ -96,9 +97,7 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
         catch (Exception e)
         {
             _logger.Error(e, "[AppendPolygons]");
-          
         }
-
     }
 
 
@@ -297,45 +296,45 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
 
     public DoInferenceRectDetectResult DoInferencePipeline()
     {
-        unsafe
+        var pipelineOutputData = new PipelineOutputData();
+        var ptr = nint.Zero;
+        try
         {
-            var pipelineOutputData = new PipelineOutputData();
-            var ptr = nint.Zero;
-            try
-            {
-                var result = PipelinePInvoke.DoInferencePipeline(_pipeline, ref pipelineOutputData);
+            var result = PipelinePInvoke.DoInferencePipeline(_pipeline, ref pipelineOutputData);
 
-                if (!result)
-                    return new DoInferenceRectDetectResult { IsSuccess = false, RectDetects = [] };
-
-                var retArray = new RectDetect[pipelineOutputData.RectanglesLen];
-                ptr = (IntPtr)pipelineOutputData.Rectangles;
-                var structSize = Marshal.SizeOf(typeof(RectDetectEngin));
-                for (var i = 0; i < pipelineOutputData.RectanglesLen; i++)
-                {
-                    var currPtr = ptr + i * structSize;
-                    var ptrToStructure = (RectDetectEngin)(Marshal.PtrToStructure(currPtr, typeof(RectDetectEngin))
-                                                           ?? throw new InvalidOperationException(
-                                                               "[DoInferencePipeline] Marshal.PtrToStructure return null"));
-
-                    retArray[i] = RectDetect.RectDetectEnginToRectDetect(ptrToStructure);
-                }
-
-                return new DoInferenceRectDetectResult { IsSuccess = true, RectDetects = retArray };
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e, "[DoInferencePipeline]");
+            if (!result)
                 return new DoInferenceRectDetectResult { IsSuccess = false, RectDetects = [] };
-            }
-            finally
+
+            var retArray = new RectDetect[pipelineOutputData.RectanglesLen];
+            ptr = pipelineOutputData.Rectangles;
+
+            for (var i = 0; i < pipelineOutputData.RectanglesLen; i++)
             {
-                if (ptr != IntPtr.Zero)
-                {
-                    var result = PipelinePInvoke.DisposeArr(ptr);
-                    if (!result)
-                        throw new Exception("[DoInferencePipeline] Dispose return false");
-                }
+                var currPtr = pipelineOutputData.Rectangles + i * (int)pipelineOutputData.StepStructure;
+                var ptrToStructure = (RectDetectExternal)(Marshal.PtrToStructure(currPtr, typeof(RectDetectExternal))
+                                                          ?? throw new InvalidOperationException(
+                                                              "[DoInferencePipeline] Marshal.PtrToStructure return null"));
+
+                var polygonsId = new int[ptrToStructure.PolygonsIdLen];
+                Marshal.Copy(ptrToStructure.PolygonsId, polygonsId, 0, polygonsId.Length);
+
+                retArray[i] = RectDetect.RectDetectEnginToRectDetect(ptrToStructure, polygonsId);
+            }
+
+            return new DoInferenceRectDetectResult { IsSuccess = true, RectDetects = retArray };
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "[DoInferencePipeline]");
+            return new DoInferenceRectDetectResult { IsSuccess = false, RectDetects = [] };
+        }
+        finally
+        {
+            if (ptr != IntPtr.Zero)
+            {
+                var result = PipelinePInvoke.DisposeRectDetectExternal(ptr);
+                if (!result)
+                    throw new Exception("[DoInferencePipeline] Dispose return false");
             }
         }
     }
@@ -368,7 +367,7 @@ public class PipelineMlExtension : IDisposable, IPipelineMlExtension
         {
             if (imageFrame.ImagesData != IntPtr.Zero)
             {
-                var result = PipelinePInvoke.DisposeArr(imageFrame.ImagesData);
+                var result = PipelinePInvoke.DisposeArrChar(imageFrame.ImagesData);
                 if (!result)
                     throw new Exception("[GetCurrenImage] Dispose return false");
             }
