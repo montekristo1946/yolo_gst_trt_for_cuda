@@ -62,7 +62,6 @@ public record RectDetect()
             TimeStamp = rectDetectExternal.TimeStamp,
             TrackId = rectDetectExternal.TrackId,
             PolygonsId = polygonsId
-            // PolygonsId = rectDetectExternal.PolygonsId
         };
     }
 }
