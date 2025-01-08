@@ -14,22 +14,19 @@ bool AlgorithmsPolygon::Predict(const vector<RectDetect>& source, vector<RectDet
 
         for (const auto& rect : source)
         {
-            auto isFindPolygon = false;
-
+            auto polygonId = vector<int>();
             for (const auto& polygon : _polygonsSettings)
             {
                 if(IsPointInPolygon(polygon,rect))
                 {
-                    auto retRct = RectDetect(rect, polygon.Id);
-                    destination.emplace_back(retRct);
-                    isFindPolygon = true;
-                    break;
+                    polygonId.emplace_back(polygon.Id);
                 }
             }
 
-            if(!isFindPolygon)
-                destination.emplace_back(rect);
+            if(polygonId.size() == 0)
+                polygonId.emplace_back(-1);
 
+            destination.emplace_back(rect, polygonId);
         }
 
         return true;

@@ -9,28 +9,41 @@ vector<Polygons> CreateExportDataPolygons()
 {
     auto points1 = vector<Point>
     {
-        { 0.4f, 0.2f},
-        { 0.6f, 0.2f},
-        { 0.8f, 0.4f},
-        { 0.8f, 0.6f},
-        { 0.6f, 0.8f},
-        { 0.4f, 0.8f},
-        { 0.2f, 0.6f},
-        { 0.2f, 0.4f},
+        {0.4f, 0.2f},
+        {0.6f, 0.2f},
+        {0.8f, 0.4f},
+        {0.8f, 0.6f},
+        {0.6f, 0.8f},
+        {0.4f, 0.8f},
+        {0.2f, 0.6f},
+        {0.2f, 0.4f},
     };
 
     auto points2 = vector<Point>
     {
-        { 0.4f, 0.2f},
-        { 0.6f, 0.2f},
-        { 0.6f, 0.9f},
-        { 0.4f, 0.9f},
+        {0.4f, 0.2f},
+        {0.6f, 0.2f},
+        {0.6f, 0.9f},
+        {0.4f, 0.9f},
+    };
+
+    auto points3 = vector<Point>
+    {
+        {0.4f, 0.2f},
+        {0.6f, 0.2f},
+        {0.8f, 0.4f},
+        {0.8f, 0.6f},
+        {0.6f, 0.8f},
+        {0.4f, 0.8f},
+        {0.2f, 0.6f},
+        {0.2f, 0.4f},
     };
 
     auto polygons = vector<Polygons>
     {
         {1, points1},
         {2, points2},
+        {3, points3},
     };
     return polygons;
 }
@@ -51,14 +64,13 @@ vector<RectDetect> CreateRectangles()
     return rects;
 }
 
-size_t GetCount(const vector<RectDetect>& rects, int idVector)
+size_t GetCount(const std::vector<int>& idVectors, int idVector)
 {
-    std::vector<RectDetect> selectedRects;
-    std::copy_if(rects.begin(), rects.end(),
-                 std::back_inserter(selectedRects),
-                 [idVector](const RectDetect& rect) { return rect.PolygonId == idVector; });
+    auto count = std::count_if(idVectors.begin(), idVectors.end(),
+        [idVector](const int& other) { return idVector == other; });
 
-    return selectedRects.size();
+    return count;
+
 }
 
 void TestPredict()
@@ -80,14 +92,23 @@ void TestPredict()
     if (rects.size() != rectangle.size())
         throw std::runtime_error("[TestPredict] Predict rects.size() != rectangle.size()");
 
-    if (GetCount(rects, 1) != 3)
+    if(rects[0].PolygonsId.size() != 2)
+        throw std::runtime_error("[TestPredict] fail find polygon = 2");
+
+    if(rects[1].PolygonsId.size() != 1)
+        throw std::runtime_error("[TestPredict] fail find polygon = 1");
+
+    if(rects[7].PolygonsId.size() != 3)
         throw std::runtime_error("[TestPredict] fail find polygon = 3");
 
-    if (GetCount(rects, -1) != 4)
-        throw std::runtime_error("[TestPredict] fail aline ");
+    if (GetCount(rects[0].PolygonsId, 1) != 1)
+        throw std::runtime_error("[TestPredict] fail find polygon = 1");
 
-    if (GetCount(rects, 2) != 1)
-        throw std::runtime_error("[TestPredict] fail aline ");
+    if (GetCount(rects[0].PolygonsId, 3) != 1)
+        throw std::runtime_error("[TestPredict] fail find polygon = 1");
+
+    if (GetCount(rects[7].PolygonsId, 2) != 1)
+        throw std::runtime_error("[TestPredict] fail find polygon = 1");
 
     auto tolerance = 0.0001;
 
@@ -99,9 +120,8 @@ void TestPredict()
         rects[0].Veracity - rectangle[0].Veracity > tolerance ||
         rects[0].TrackId - rectangle[0].TrackId > tolerance ||
         rects[0].TimeStamp != rectangle[0].TimeStamp ||
-        rects[0].PolygonId != 1)
+        rects[0].PolygonsId.size() != 2)
         throw std::runtime_error("[TestPredict] fail copy fileds ");
-
 
     printf("______  TestPredict OK______  \n");
 }

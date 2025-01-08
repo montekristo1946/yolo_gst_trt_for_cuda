@@ -125,25 +125,35 @@ void DrawingResults(cv::Mat mat, PipelineOutputData * pipelineOutputData)
     cv::Scalar colorText(0, 0, 255); // Green color
     int fontFace = cv::FONT_HERSHEY_SIMPLEX;
     double fontScale = 0.75;
-    auto rectsSrc = pipelineOutputData->Rectangles;
-    vector<RectDetect> rects = vector(rectsSrc, rectsSrc + pipelineOutputData->RectanglesLen);
-    for (auto rect : rects)
-    {
-        auto width = (int)(rect.Width*ImageWidth);
-        auto height = (int)(rect.Height*ImageHeight);
-        auto x = (int)((rect.X - rect.Width / 2) *ImageWidth);
-        auto y = (int)((rect.Y - rect.Height / 2) *ImageHeight);;
+    // auto rectsSrc = pipelineOutputData->Rectangles;
+    // vector<RectDetectExternal> rects = vector(rectsSrc, rectsSrc + pipelineOutputData->RectanglesLen);
 
-        auto text = to_string(rect.Veracity);
-        auto color = ColorInLabels[(int)rect.IdClass];
-        auto track_id = rect.TrackId;
-        auto polygon = rect.PolygonId;
-        auto pointCenter = cv::Point(x + width / 2, y + height / 2);
+    // for (auto rect : rects)
+    for (int iRect = 0; iRect < pipelineOutputData->RectanglesLen; iRect++)
+    {
+        RectDetectExternal *rect = &pipelineOutputData->Rectangles[iRect];
+        auto width = (int)(rect->Width*ImageWidth);
+        auto height = (int)(rect->Height*ImageHeight);
+        auto x = (int)((rect->X - rect->Width / 2) *ImageWidth);
+        auto y = (int)((rect->Y - rect->Height / 2) *ImageHeight);;
+
+        auto text = to_string(rect->Veracity);
+        auto color = ColorInLabels[(int)rect->IdClass];
+        auto track_id = rect->TrackId;
+
+        // auto polygonIds = vector(rect.PolygonsId,rect.PolygonsId+rect.PolygonsIdLen);
+        auto pointLeft = cv::Point(x , y + height / 2);
 
         rectangle(mat, cv::Rect(x, y, width, height), color, 1, 8, 0);
-        putText(mat, to_string(rect.TimeStamp), cv::Point(10, ImageHeight-50), fontFace, fontScale, colorText);
+        putText(mat, to_string(rect->TimeStamp), cv::Point(10, ImageHeight-50), fontFace, fontScale, colorText);
         putText(mat, to_string(track_id), cv::Point(x, y), fontFace, fontScale, color);
-        putText(mat, to_string(polygon), pointCenter, fontFace, fontScale, color);
+        for (int i = 0; i < rect->PolygonsIdLen; i++)
+        {
+            auto id = rect->PolygonsId[i];
+            putText(mat, to_string(id), pointLeft, fontFace, fontScale, color);
+            pointLeft = cv::Point(pointLeft.x+10 , pointLeft.y);
+        }
+
     };
 
     imshow("Result", mat);

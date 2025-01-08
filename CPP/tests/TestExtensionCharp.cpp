@@ -185,6 +185,15 @@ AlgorithmsPolygon* CreateAlgorithmsPolygonForTest()
     if (!res)
         throw runtime_error("[CreateAlgorithmsPolygonForTest] AlgorithmsPolygonAppend");
 
+    polygonsSettings->IdPolygon = 3;
+    polygonsSettings->PolygonsX = new float [] {0.01, 0.99, 0.99, 0.01};
+    polygonsSettings->PolygonsY = new float [] {0.01, 0.01, 0.99, 0.99};
+
+
+    res = AlgorithmsPolygonAppend(algorithmsPolygon, polygonsSettings);
+    if (!res)
+        throw runtime_error("[CreateAlgorithmsPolygonForTest] AlgorithmsPolygonAppend");
+
     delete polygonsSettings;
 
     return algorithmsPolygon;

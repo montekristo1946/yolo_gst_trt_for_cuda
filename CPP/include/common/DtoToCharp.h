@@ -12,13 +12,14 @@ public:
         Y = -1;
         Width = -1;
         Height = -1;
-        IdClass =-1;
+        IdClass = -1;
         TimeStamp = 0;
         Veracity = -1;
         TrackId = -1;
     }
 
-    RectDetect(float x, float y, float width, float height, int idClass, uint64_t timeStamp, float veracity, int trackId)
+    RectDetect(float x, float y, float width, float height, int idClass, uint64_t timeStamp, float veracity,
+               int trackId)
     {
         X = x;
         Y = y;
@@ -28,10 +29,9 @@ public:
         TimeStamp = timeStamp;
         Veracity = veracity;
         TrackId = trackId;
-        PolygonId = -1;
     }
 
-    RectDetect(const RectDetect& rect, int polygonId)
+    RectDetect(const RectDetect& rect, std::vector<int>& polygonsId)
     {
         X = rect.X;
         Y = rect.Y;
@@ -41,7 +41,7 @@ public:
         TimeStamp = rect.TimeStamp;
         Veracity = rect.Veracity;
         TrackId = rect.TrackId;
-        PolygonId = polygonId;
+        PolygonsId = polygonsId;
     }
 
     float X;
@@ -51,44 +51,99 @@ public:
     int IdClass;
     float Veracity;
     int TrackId;
-    uint32_t   TimeStamp;
-    int PolygonId;
-
+    uint32_t TimeStamp;
+    std::vector<int> PolygonsId;
 };
 
-struct PipelineOutputData {
-    PipelineOutputData() {
+//-----------------------------------------------------------------------------
+struct RectDetectExternal
+{
+public:
+    RectDetectExternal()
+    {
+        X = -1;
+        Y = -1;
+        Width = -1;
+        Height = -1;
+        IdClass = -1;
+        TimeStamp = 0;
+        Veracity = -1;
+        TrackId = -1;
+        PolygonsId = nullptr;
+        PolygonsIdLen = 0;
+    }
+
+    float X;
+    float Y;
+    float Width;
+    float Height;
+    int IdClass;
+    float Veracity;
+    int TrackId;
+    uint32_t TimeStamp;
+    int* PolygonsId;
+    unsigned int PolygonsIdLen;
+
+    ~RectDetectExternal()
+    {
+        if (PolygonsId)
+        {
+            delete[] PolygonsId;
+            PolygonsId = nullptr;
+            PolygonsIdLen = 0;
+        }
+    }
+};
+
+struct PipelineOutputData
+{
+    PipelineOutputData()
+    {
         Rectangles = nullptr;
         RectanglesLen = 0;
     }
 
-~PipelineOutputData() {
+    ~PipelineOutputData()
+    {
         if (Rectangles)
+        {
             delete [] Rectangles;
-}
-    RectDetect *Rectangles;
+            Rectangles = nullptr;
+            RectanglesLen = 0;
+        }
+    }
+
+    RectDetectExternal* Rectangles;
     unsigned int RectanglesLen;
 };
 
 
-struct ImageFrame {
+struct ImageFrame
+{
     ImageFrame()
     {
         ImagesData = nullptr;
         ImageLen = 0;
-        TimeStamp =0;
+        TimeStamp = 0;
     }
-    unsigned char *ImagesData;
+
+    unsigned char* ImagesData;
     unsigned int ImageLen;
     uint64_t TimeStamp;
 
-    ~ImageFrame() {
-        if(ImagesData)
+    ~ImageFrame()
+    {
+        if (ImagesData)
+        {
             delete[] ImagesData;
+            ImagesData = nullptr;
+            ImageLen = 0;
+        }
     }
 };
 
-struct Point {
+struct Point
+{
     float X;
     float Y;
 };
@@ -105,18 +160,19 @@ struct PolygonsSettingsExternal
 {
     int IdPolygon;
 
-    float * PolygonsX;
+    float* PolygonsX;
 
-    float * PolygonsY;
+    float* PolygonsY;
 
     unsigned int CountPoints;
 
 
-    ~PolygonsSettingsExternal() {
-        if(PolygonsX)
+    ~PolygonsSettingsExternal()
+    {
+        if (PolygonsX)
             delete[] PolygonsX;
 
-        if(PolygonsY)
+        if (PolygonsY)
             delete[] PolygonsY;
     }
 };

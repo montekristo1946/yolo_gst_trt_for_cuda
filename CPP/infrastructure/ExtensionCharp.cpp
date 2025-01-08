@@ -512,8 +512,25 @@ extern "C" MYLIB_EXPORT bool DoInferencePipeline(EnginePipeline* enginePipeline,
             return false;
         }
 
-        auto* arr = new RectDetect[resultNms.size()];
-        copy(resultNms.begin(), resultNms.end(), arr);
+        auto* arr = new RectDetectExternal[resultNms.size()];
+
+        for (int i = 0; i < resultNms.size(); i++)
+        {
+            auto polygons = resultNms[i];
+            auto polygonsId = new int[polygons.PolygonsId.size()];
+            copy(polygons.PolygonsId.begin(), polygons.PolygonsId.end(), polygonsId);
+
+            arr[i].X = polygons.X;
+            arr[i].Y = polygons.Y;
+            arr[i].Width = polygons.Width;
+            arr[i].Height = polygons.Height;
+            arr[i].IdClass = polygons.IdClass;
+            arr[i].Veracity = polygons.Veracity;
+            arr[i].TrackId = polygons.TrackId;
+            arr[i].TimeStamp = polygons.TimeStamp;
+            arr[i].PolygonsId = polygonsId;
+            arr[i].PolygonsIdLen = polygons.PolygonsId.size();
+        }
 
         pipelineOutputData->RectanglesLen = resultNms.size();
         pipelineOutputData->Rectangles = arr;
