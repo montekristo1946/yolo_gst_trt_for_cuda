@@ -36,7 +36,7 @@ bool BufferFrameGpu::Enqueue(FrameGpu<Npp8u>* frame)
         {
             auto *frameTmp = _queueFrame.front();
             _queueFrame.pop();
-            // warn("[BufferFrameGpu::Enqueue] skip FrameTime: {} ms, sizeBuffer:{}", frameTmp->Timestamp(),_queueFrame.size() );
+            warn("[BufferFrameGpu::Enqueue] skip FrameTime: {} ms, sizeBuffer:{}", frameTmp->Timestamp(),_queueFrame.size() );
             delete frameTmp;
 
         }
